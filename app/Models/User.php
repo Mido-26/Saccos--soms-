@@ -58,7 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
     static::created(function ($user) {
         // Create a new savings account with default values
         $user->savings()->create([
-            'account_balance' => 0,      // Initial balance
+            'account_balance' => 1000000,      // Initial balance
             'interest_earned' => 0,      // Initial interest
             'last_deposit_date' => null, // Set this as needed
         ]);

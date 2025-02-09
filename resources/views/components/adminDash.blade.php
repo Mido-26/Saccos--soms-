@@ -1,7 +1,7 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     <x-stat-card icon="fas fa-users" bgColor="bg-blue-500" title="Total Members" value="{{ $members }}" link="/users/" />
 
-    <x-stat-card icon="fas fa-piggy-bank" bgColor="bg-green-500" title="Total Savings" value="{{ $settings->currency }} {{ $totalSavings}}"
+    <x-stat-card icon="fas fa-piggy-bank" bgColor="bg-green-500" title="Total Savings" value="{{ $settings->currency }} {{ number_format($totalSavings, 2) }}"
         link="/savings" />
 
     <x-stat-card icon="fas fa-check-circle" bgColor="bg-yellow-500" title="Loans Completed" value="{{ $completed_loans }}"
@@ -16,7 +16,7 @@
     {{-- <x-stat-card icon="fas fa-user-plus" bgColor="bg-purple-500" title="New Members" value="45"
         link="/members/new" /> --}}
 
-    <x-stat-card icon="fas fa-donate" bgColor="bg-orange-500" title="Total Contributions" value="TZS {{ $totalContribution }}"
+    <x-stat-card icon="fas fa-donate" bgColor="bg-yellow-300" title="Total Contributions" value="{{ $settings->currency }} {{ number_format($totalContribution, 2) }}"
         link="/transactions" />
 
     <x-stat-card icon="fas fa-clock" bgColor="bg-gray-500" title="Pending Loans" value="{{ $pending_loans }}"

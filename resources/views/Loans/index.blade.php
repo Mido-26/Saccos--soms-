@@ -74,7 +74,10 @@
                                 <input type="checkbox" class="form-checkbox select-row">
                             </td>
                             <td class="px-4 py-2 border">{{ $loan->id }}</td>
-                            <td class="px-4 py-2 border">{{ $loan->loanscartegory->loanName }}</td>
+                            <td class="px-4 py-2 border">
+                                
+                                {{-- {{ $loan->loanscartegory->loanName }} --}}
+                            </td>
                             <td class="px-4 py-2 border">{{ number_format($loan->amount, 2) }}</td>
                             <td class="px-4 py-2 border">{{ number_format($loan->duration_in_days / 30) }} Months</td>
                             <td class="px-4 py-2 border">{{ $loan->interest_rate }}</td>
