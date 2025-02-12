@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('Date_OF_Birth');
             $table->string('Address');
             $table->string('password');
-            $table->enum('role', ['admin', 'staff', 'user'])->default('user');
+            $table->enum('role', ['superadmin', 'admin', 'staff', 'user'])->default('user');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->rememberToken();
             $table->timestamps();

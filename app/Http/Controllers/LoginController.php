@@ -4,17 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
-use Symfony\Component\HttpFoundation\Session\Session;
+use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
 
 class LoginController extends Controller
 {
-    public function showLoginForm(){
+    public function showLoginForm()
+    {
         return view('auth.index');
     }
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6'
@@ -22,54 +26,74 @@ class LoginController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        if(Auth::attempt($credentials)){
-            // dd(Auth::user());
+        if (Auth::attempt($credentials)) {
             session(['role' => Auth::user()->role]);
-            // dd(session('role'));
             return redirect()->route('dashboard');
         }
 
-        // if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
-        //     return redirect()->route('dashboard');
-        // }
         return redirect()->route('login')->with('error', 'Invalid email or password');
     }
 
-    public function logout(Request $request){
-        Auth::logout();  // Log out the user
-        $request->session()->invalidate();  // Invalidate session data
-        $request->session()->regenerateToken();  // Regenerate CSRF token
-        return redirect()->route('login');  // Redirect to login page
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
     }
-    
 
     public function showLinkRequestForm()
     {
-        return view('auth.forgot-password');  // Return the forgot password view
+        return view('auth.forgot-password');
     }
+
     public function sendResetLinkEmail(Request $request)
     {
-        // Validate the email input
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
         ]);
 
-        // If validation fails, redirect back with errors
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Send the reset link via email using Laravel's built-in Password broker
-        $response = Password::sendResetLink(
-            $request->only('email')
-        );
+        $response = Password::sendResetLink($request->only('email'));
 
-        // Check if the reset link was sent successfully
         if ($response == Password::RESET_LINK_SENT) {
-            return back()->with('status', 'We have e-mailed your password reset link!');
+            return back()->with('success', 'We have e-mailed your password reset link!');
         }
 
-        // If there was an issue sending the reset link, show a failure message
         return back()->withErrors(['email' => 'Failed to send reset link. Please try again.']);
+    }
+
+    public function showResetForm($token)
+    {
+        return view('auth.reset-password', ['token' => $token]);
+    }
+
+    public function reset(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|min:8|confirmed',
+            'password_confirmation' => 'required',
+            'token' => 'required'
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status == Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('success', __('Your password has been reset successfully.'))
+            : back()->withErrors(['email' => __('Failed to reset password. Try again.')]);
     }
 }

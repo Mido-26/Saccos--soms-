@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 class UserController extends Controller
 {
@@ -36,7 +37,7 @@ class UserController extends Controller
             'last_name' => 'required|string|max:50',
             'email' => 'required|email|unique:users,email',
             'phone_number' => 'required|string|max:15|unique:users,phone_number',
-            'password' => 'password',
+            'password' => 'nullable|string|min:8',
             'Date_OF_Birth' => ['required','date','before:' . now()->subYears(18)->format('Y-m-d')],
             'Address' => 'required|string',
         ]);
@@ -48,9 +49,12 @@ class UserController extends Controller
             'phone_number' => $request->phone_number,
             'Date_OF_Birth' => $request->Date_OF_Birth,
             'Address' => $request->Address,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($request->password ?: 'password'),
             'status' => 'active',
         ]);
+
+        // Send email verification link
+        $user->sendEmailVerificationNotification();
 
         // Auth::login($user);
 

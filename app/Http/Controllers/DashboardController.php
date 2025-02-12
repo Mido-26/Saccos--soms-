@@ -41,8 +41,9 @@ class DashboardController extends Controller
         $disbursed_loans = $loanCounts->disbursed_loans;
         $completed_loans = $loanCounts->completed_loans;
         $defaulted_loans = $loanCounts->defaulted_loans;
+        $notifications = Auth::user()->notifications()->latest()->take(3)->get();
         // $config = Settings::all(); 
-        return view('dashboard.dashboard', compact('user', 'role','members','pending_loans', 'disbursed_loans', 'completed_loans', 'defaulted_loans','totalContribution', 'totalSavings'));
+        return view('dashboard.dashboard', compact('user', 'role','members','pending_loans', 'disbursed_loans', 'completed_loans', 'defaulted_loans','totalContribution', 'totalSavings', 'notifications'));
     }
 
     public function switchUser(Request $request){

@@ -28,8 +28,15 @@ class SettingsController extends Controller
             'loanMaxAmount' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'max:3'],
             'allowGuarantor' => ['sometimes', 'boolean'],
-            'minGuarantor' => ['nullable', 'integer', 'min:1', 'required_if:allowGuarantor,true'],
-            'maxGuarantor' => ['nullable', 'integer', 'min:1', 'required_if:allowGuarantor,true'],
+            'minGuarantor' => ['required_if:allowGuarantor,true', 'integer', 'min:1'],
+            'maxGuarantor' => ['nullable', 'integer', 'min:1',
+                function ($attribute, $value, $fail) use ($request) {
+                    $min = $request->input('minGuarantor');
+                    if (!is_null($value) && $value < $min) {
+                        $fail('The max guarantor must be greater than or equal to the min guarantor.');
+                    }
+                }
+            ],
             'minSavingsGuarantor' => ['nullable', 'numeric', 'min:0', 'required_if:allowGuarantor,true'],
             // user validation
             'first_name' => 'required|string|max:50',
@@ -56,7 +63,7 @@ class SettingsController extends Controller
                 'currency' => $validated['currency'],
                 'allow_guarantor' => $validated['allowGuarantor'],
                 'min_guarantor' => $validated['minGuarantor'],
-                'max_guarantor' => $validated['maxGuarantor'],
+                'max_guarantor' => $validated['maxGuarantor'] ?? $validated['minGuarantor'],
                 'min_savings_guarantor' => $validated['minSavingsGuarantor']
             ]);
             

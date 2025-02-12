@@ -125,7 +125,7 @@
         </div>
 
         <!-- New Notifications Section -->
-        <div class="bg-white shadow-lg rounded-lg pt-4 pb-4 px-4 border-t-4 border-orange-500">
+        <div class="relative bg-white shadow-lg rounded-lg pt-4 pb-4 px-4 border-t-4 border-orange-500">
             <div class="flex items-center mb-2">
                 <div class="p-2 bg-orange-500 rounded-xl">
                     <i class="fas fa-bell text-white text-lg"></i>
@@ -136,20 +136,29 @@
             </div>
             <hr>
             <ul class="mt-4 space-y-2">
-                <li class="text-gray-600 flex justify-between">
-                    <span>Loan Payment Reminder</span>
-                    <span class="text-sm text-gray-400">2 hours ago</span>
-                </li>
-                <li class="text-gray-600 flex justify-between">
-                    <span>Account Statement Available</span>
-                    <span class="text-sm text-gray-400">Yesterday</span>
-                </li>
-                <li class="text-gray-600 flex justify-between">
-                    <span>Profile Update Successful</span>
-                    <span class="text-sm text-gray-400">3 days ago</span>
-                </li>
+                @forelse ($notifications as $notification)
+                    @php
+                        $message = preg_replace(
+                            '/\*\*(.*?)\*\*/',
+                            '<b>$1</b>',
+                            $notification->data['message'] ?? 'New Notification',
+                        );
+                        $shortMessage =
+                            strlen(strip_tags($message)) > 50
+                                ? substr(strip_tags($message), 0, 50) . '...'
+                                : strip_tags($message);
+                    @endphp
+                    <li class="text-gray-600 flex justify-between">
+                        <span>{!! $shortMessage !!}</span>
+                        <span class="text-sm text-gray-400">{{ $notification->created_at->diffForHumans() }}</span>
+                    </li>
+                @empty
+                    <li class="text-gray-400 text-center">No new notifications</li>
+                @endforelse
             </ul>
-            <button class="text-sm text-orange-500 mt-4 hover:underline" id="showMoreNotifications">Show More</button>
+
+            <a href="{{ route('notifications.index') }}" class="absolute bottom-5 text-sm text-orange-500 mt-4 hover:underline"
+                id="showMoreNotifications">Show More</a>
         </div>
     </div>
 </div>

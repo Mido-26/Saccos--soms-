@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use App\Models\Settings;
 use App\Policies\RolePolicy;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Event;
@@ -27,6 +28,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        function generateProfileAcronym($firstName, $secondName)
+    {
+        $firstLetter = strtoupper(substr($firstName, 0, 1));
+        $secondLetter = strtoupper(substr($secondName, 0, 1));
+
+        return $firstLetter . $secondLetter;
+    }
         Gate::define('viewAdminDashboard', [RolePolicy::class, 'viewAdminDashboard']);
         Event::listen(
             Registered::class,
@@ -34,5 +42,16 @@ class AppServiceProvider extends ServiceProvider
         );
         $settings = Settings::first();
         View::share('settings' , $settings);
+
+        // Share the initials variable with all views
+        view()->composer('*', function ($view) {
+            
+            if (Auth::check()) {
+                $fName = Auth::user()->first_name;
+                $lName = Auth::user()->last_name;
+                $initials = generateProfileAcronym($fName, $lName);
+                $view->with('initials', $initials);
+            }
+        });
     }
 }

@@ -7,8 +7,9 @@
                 <div class="flex items-center space-x-4">
                     <div class="relative">
                         <!-- Profile Picture -->
-                        <img src="../../assets/logo/logo2.png" alt="Profile Picture"
-                            class="w-20 h-20 rounded-full border-4 border-white mx-auto sm:mx-0">
+                        @include('components.profile_initials', ['initials' => $initials, 'width' => 'w-20', 'height' => 'h-20', 'fontSize' => 'text-4xl'])
+                        {{-- <img src="../../assets/logo/logo2.png" alt="Profile Picture" --}}
+                            {{-- class="w-20 h-20 rounded-full border-4 border-white mx-auto sm:mx-0"> --}}
                         <!-- Edit Icon -->
                         <div class="absolute bottom-0 right-0 bg-white p-1 rounded-full">
                             <i class="fas fa-camera text-green-400"></i>

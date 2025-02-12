@@ -16,7 +16,7 @@
     {{-- <x-stat-card icon="fas fa-user-plus" bgColor="bg-purple-500" title="New Members" value="45"
         link="/members/new" /> --}}
 
-    <x-stat-card icon="fas fa-donate" bgColor="bg-yellow-300" title="Total Contributions" value="{{ $settings->currency }} {{ number_format($totalContribution, 2) }}"
+    <x-stat-card icon="fas fa-donate" bgColor="bg-orange-500" title="Total Contributions" value="{{ $settings->currency }} {{ number_format($totalContribution, 2) }}"
         link="/transactions" />
 
     <x-stat-card icon="fas fa-clock" bgColor="bg-gray-500" title="Pending Loans" value="{{ $pending_loans }}"

@@ -28,14 +28,14 @@
     <div class="bg-white px-4 py-3 rounded-xl shadow-lg w-full max-w-sm">
         <!-- Logo Section -->
         <!-- <img src="../assets/logo/logo2.png" alt="HQ Logo" class="mb-6 mx-auto" style="width: 80px;"> -->
-        
+
         <div>
             {{-- <p class="text-center text-2xl text-green-700 uppercase font-extrabold mb-2">SOMS Forgot Password</p> --}}
             <p class="text-center text-gray-500 capitalize my-2">Enter your email address to reset your password</p>
         </div>
         <!-- Forgot Password Form -->
         @include('components.sess_msg')
-        <form action="{{ route('password.reset') }}" method="post" class="space-y-2">
+        <form action="{{ route('password.email') }}" method="post" class="space-y-2">
             @csrf
             @method('POST')
             @if ($errors->any())
@@ -54,10 +54,10 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i class="fas fa-envelope text-green-600" aria-hidden="true"></i>
                     </div>
-                    <input type="email" id="email" name="email" value="{{ old('email') }}"
-                        placeholder="Email" aria-label="Email"
+                    <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="Email"
+                        aria-label="Email"
                         class="block w-full pl-10 pr-3 py-2 border border-green-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                        required>
+                        required autocomplete="off" autofocus>
                 </div>
             </div>
 
@@ -65,11 +65,12 @@
             <button type="submit" name="sub-reset"
                 class="w-full bg-green-600 text-white py-1 px-4 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                 <i class="fa fa-paper-plane mr-2"></i> Send Reset Link</button>
-            
+
         </form>
         <div class="mt-4 text-center">
             <p class="text-sm text-gray-600">
-                <a href="{{ route('login') }}" class="text-green-600 hover:text-green-500 font-medium underline">Remember your password? Login</a>
+                <a href="{{ route('login') }}"
+                    class="text-green-600 hover:text-green-500 font-medium underline">Remember your password? Login</a>
             </p>
         </div>
     </div>

@@ -3,7 +3,7 @@
 <!-- Loader Div -->
 <div id="loader" class="hidden fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-md py-4 px-6 flex flex-col items-center justify-center">
-        <img src="{{ asset('assets/loaders/Fidget-spinner.gif')}}" alt="Loading..." class="w-10 h-10">
+        <img src="{{ asset('assets/loaders/Fidget-spinner.gif') }}" alt="Loading..." class="w-10 h-10">
     </div>
 </div>
 <!-- Footer -->

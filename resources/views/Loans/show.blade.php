@@ -1,138 +1,260 @@
 <x-layout>
-
-@section('title', 'Loan Details')
-@section('name', 'Loan Details')
-@section('content')
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Loan Details</h2>
-
-        <!-- Loan Information -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Loan ID -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Loan ID:</p>
-                <p class="text-lg text-gray-800">{{ $loan->id }}</p>
+    @section('title', 'Loan Details')
+    @section('name', 'Loan Details')
+    @section('content')
+        {{-- notification --}}
+        @include('components.sess_msg')
+        
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <!-- Loan Header -->
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Loan Details</h2>
+                <x-status-badge :status="$loan->status" />
             </div>
 
-            <!-- Loan Type -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Loan Type:</p>
-                <p class="text-lg text-gray-800">{{ $loan->loanscartegory->loanName }}</p>
+            <!-- Loan Information Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Loan ID -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-semibold">Loan ID</p>
+                    <p class="text-lg text-gray-800">{{ $loan->id }}</p>
+                </div>
+
+                <!-- Borrower -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-semibold">Borrower</p>
+                    <p class="text-lg text-gray-800">
+                        <a href="{{ route('users.show', $loan->user->id) }}" class="text-blue-500 hover:underline"
+                            target="_blank">
+                            <i class="fas fa-user-circle mr-2"></i>
+                            {{ $loan->user->first_name }} {{ $loan->user->last_name }}
+                        </a>
+                    </p>
+                </div>
+
+                <!-- Principal Amount -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-semibold">Principal Amount (TZS)</p>
+                    <p class="text-lg text-gray-800">
+                        <i class="fas fa-money-bill-wave mr-2"></i>
+                        {{ number_format($loan->principal_amount, 2) }}
+                    </p>
+                </div>
+
+                <!-- Total Amount Payable -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-semibold">Total Amount Payable (TZS)</p>
+                    <p class="text-lg text-gray-800">
+                        <i class="fas fa-coins mr-2"></i>
+                        {{ number_format($loan->loan_amount, 2) }}
+                    </p>
+                </div>
+
+                <!-- Repayment Period -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-semibold">Repayment Period</p>
+                    <p class="text-lg text-gray-800">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        {{ number_format($loan->loan_duration) }} Months
+                    </p>
+                </div>
+
+                <!-- Interest Rate -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 font-semibold">Interest Rate</p>
+                    <p class="text-lg text-gray-800">
+                        <i class="fas fa-percentage mr-2"></i>
+                        {{ $loan->interest_rate }}%
+                    </p>
+                </div>
             </div>
 
-            <!-- Borrower -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Borrower:</p>
-                <p class="text-lg text-gray-800">
-                    <a href="{{ route('members.show', $loan->user->id) }}" class="text-blue-500 hover:underline">
-                        {{ $loan->user->first_name }} {{ $loan->user->last_name }}
-                    </a>
-                </p>
+            <!-- Loan Timeline -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-history mr-2"></i>
+                    Loan Timeline
+                </h3>
+                <ul class="space-y-3">
+                    <li class="text-gray-700">
+                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                        Applied on: {{ $loan->created_at->format('d M Y') }}
+                    </li>
+                    <li class="text-gray-700">
+                        <i
+                            class="fas fa-check-circle {{ $loan->approved_at ? 'text-green-500' : 'text-gray-400' }} mr-2"></i>
+                        Approved on: {{ $loan->approved_at ? \Carbon\Carbon::parse($loan->approved_at)->format('d M Y H:i:s') : 'N/A' }}
+
+                    </li>
+                    <li class="text-gray-700">
+                        <i
+                            class="fas fa-check-circle {{ $loan->disbursed_at ? 'text-green-500' : 'text-gray-400' }} mr-2"></i>
+                        Disbursed on: {{ $loan->disbursed_at ? $loan->disbursed_at->format('d M Y') : 'N/A' }}
+                    </li>
+                </ul>
             </div>
 
-            <!-- Principal Amount -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Principal Amount (TZS):</p>
-                <p class="text-lg text-gray-800">{{ number_format($loan->principal_amount, 2) }}</p>
+            <!-- Referees Section -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-users mr-2"></i>
+                    Referees
+                </h3>
+                <div class="space-y-4">
+                    @foreach ($loan->referee as $referee)
+                        <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-800 capitalize">
+                                    <i class="fas fa-user mr-2"></i>
+                                    {{ $referee->user->first_name }} {{ $referee->user->last_name }}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    Status:
+                                    @if ($referee->Approved)
+                                        <span class="text-green-500">Approved</span>
+                                    @else
+                                        <span class="text-gray-500">Pending</span>
+                                    @endif
+                                </p>
+                            </div>
+                            @if (auth()->user()->id === $referee->user_id && !$referee->Approved)
+                                <div class="flex space-x-2">
+                                    <form
+                                        action="{{ route('loans.updateStatus', ['loan' => $loan->id, 'referee' => $referee->id, 'action' => 'approve']) }}"
+                                        method="POST">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit"
+                                            class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                                            <i class="fas fa-check mr-2"></i>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form
+                                        action="{{ route('loans.updateStatus', ['loan' => $loan->id, 'referee' => $referee->id, 'action' => 'reject']) }}"
+                                        method="POST">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit"
+                                            class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                            <i class="fas fa-times mr-2"></i>
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
             </div>
 
-            <!-- Total Amount Payable -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Total Amount Payable (TZS):</p>
-                <p class="text-lg text-gray-800">{{ number_format($loan->amount, 2) }}</p>
-            </div>
+            @php
+                $totalReferees = $loan->referee->count();
+                $approvedReferees = $loan->referee->where('Approved', true)->count();
+                // $var = 3==3 ? 'true' : 'false';
+                // dd($totalReferees, $approvedReferees, $var);
+                $isPendingReferees = $totalReferees == $approvedReferees ? false : true;
+                // dd($isPendingReferees);
+            @endphp
 
-            <!-- Repayment Period -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Repayment Period:</p>
-                <p class="text-lg text-gray-800">{{ number_format($loan->duration_in_days / 30) }} Months</p>
-            </div>
+            <!-- Borrower View -->
+            @if (auth()->user()->id === $loan->user_id)
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Your Loan Status
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        @if ($isPendingReferees)
+                            <p class="text-gray-600">
+                                <i class="fas fa-clock mr-2"></i>
+                                Your loan is pending approval from the referees.
+                            </p>
+                        @elseif (!$isPendingReferees && $loan->status === 'pending')
+                            <p class="text-gray-600">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Your loan has been approved by the referees and is awaiting admin approval.
+                            </p>
+                        @elseif ($loan->status === 'approved')
+                            <p class="text-gray-600">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Your loan has been approved by the admin and is awaiting disbursement.
+                            </p>
+                        @elseif ($loan->status === 'rejected')
+                            <p class="text-gray-600">
+                                <i class="fas fa-times-circle mr-2"></i>
+                                Your loan has been rejected.
+                            </p>
+                        @elseif ($loan->status === 'disbursed')
+                            <p class="text-gray-600">
+                                <i class="fas fa-check-double mr-2"></i>
+                                Your loan has been disbursed.
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            @endif
 
-            <!-- Interest Rate -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Interest Rate (%):</p>
-                <p class="text-lg text-gray-800">{{ $loan->interest_rate }}</p>
-            </div>
+            <!-- Admin Actions -->
+            @if (auth()->user()->role === 'admin')
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-tools mr-2"></i>
+                        Admin Actions
+                    </h3>
+                    <div class="flex space-x-4">
+                        @if ($loan->status === 'pending' || $loan->status === 'rejected')
+                            <form action="{{ route('loans.updateStatus', ['loan' => $loan->id, 'action' => 'approve']) }}"
+                                method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                                    <i class="fas fa-check mr-2"></i>
+                                    Approve Loan
+                                </button>
+                            </form>
+                        @endif
+                        @if ($loan->status === 'pending' || $loan->status === 'approved')
+                            <form action="{{ route('loans.updateStatus', ['loan' => $loan->id, 'action' => 'reject']) }}"
+                                method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Reject Loan
+                                </button>
+                            </form>
+                        @endif
+                        @if ($loan->status === 'pending' || $loan->status === 'approved')
+                            <form
+                                action="{{ route('loans.updateStatus', ['loan' => $loan->id, 'action' => 'disbursed']) }}"
+                                method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <i class="fas fa-hand-holding-usd mr-2"></i>
+                                    Disburse Loan
+                                </button>
+                            </form>
+                        @endif
 
-            <!-- Status -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Status:</p>
-                <span
-                    class="inline-block px-3 py-1 rounded text-sm font-semibold {{ $loan->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ($loan->status === 'approved' ? 'bg-green-100 text-green-800' : ($loan->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800')) }}">
-                    {{ ucfirst($loan->status) }}
-                </span>
-            </div>
+                    </div>
+                </div>
+            @endif
 
-            <!-- Created and Updated Information -->
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Created By:</p>
-                <p class="text-lg text-gray-800">{{ $loan->created_by }}</p>
-                <p class="text-sm text-gray-600">Created At: {{ $loan->created_at->format('d M Y') }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600 font-semibold">Last Updated:</p>
-                <p class="text-lg text-gray-800">{{ $loan->updated_by }}</p>
-                <p class="text-sm text-gray-600">Updated At: {{ $loan->updated_at->format('d M Y') }}</p>
-            </div>
+            <!-- Admin Logs -->
+            @if (auth()->user()->role === 'admin')
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-clipboard-list mr-2"></i>
+                        Action Logs
+                    </h3>
+                    <p class="text-gray-600">No logs available.</p>
+                </div>
+            @endif
         </div>
-
-        <!-- Loan Timeline -->
-        <div class="mt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Loan Timeline</h3>
-            <ul class="list-disc pl-5 text-gray-700">
-                <li>Applied on: {{ $loan->created_at->format('d M Y') }}</li>
-                <li>Approved on: {{ $loan->approved_at ? $loan->approved_at->format('d M Y') : 'N/A' }}</li>
-                <li>Disbursed on: {{ $loan->disbursed_at ? $loan->disbursed_at->format('d M Y') : 'N/A' }}</li>
-            </ul>
-        </div>
-
-        <!-- Status Change Buttons -->
-        <div class="mt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Change Loan Status</h3>
-            <div class="flex space-x-4">
-                @if ($loan->status !== 'approved' && $loan->status !== 'disbursed')
-                    <!-- Approve Button -->
-                    <form action="{{ route('loans.changeStatus', ['loan' => $loan->id, 'status' => 'approved']) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit"
-                            class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
-                            Approve
-                        </button>
-                    </form>
-                @endif
-
-                @if ($loan->status !== 'rejected' && $loan->status !== 'disbursed')
-                    <!-- Reject Button -->
-                    <form action="{{ route('loans.changeStatus', ['loan' => $loan->id, 'status' => 'rejected']) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit"
-                            class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
-                            Reject
-                        </button>
-                    </form>
-                @endif
-
-                @if ($loan->status !== 'disbursed')
-                    <!-- Disburse Button -->
-                    <form action="{{ route('loans.changeStatus', ['loan' => $loan->id, 'status' => 'disbursed']) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit"
-                            class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                            Disburse
-                        </button>
-                    </form>
-                @endif
-            </div>
-        </div>
-
-        <!-- Admin Logs -->
-        <div class="mt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Action Logs</h3>
-            <p class="text-gray-600">No logs available.</p>
-        </div>
-    </div>
-@endsection
+    @endsection
 </x-layout>
