@@ -14,9 +14,8 @@
 
                 {{-- Transaction Type --}}
                 <x-form.select-field name="type" label="Transaction Type" :options="[
-                    'deposit' => 'Deposit',
-                    'withdrawal' => 'Withdrawal',
-                    'loan_payment' => 'Loan Payment',
+                    'savings_deposit' => 'Savings Deposit',
+                    'savings_withdrawal' => 'Savings Withdrawal',
                     'loan_disbursement' => 'Loan Disbursement',
                 ]"
                     placeholder="Select a transaction type" icon="fas fa-exchange-alt" :required="true" />

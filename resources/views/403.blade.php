@@ -13,7 +13,7 @@
         <p class="text-2xl font-semibold text-gray-800 mt-4">Unauthorized Access</p>
         <p class="text-gray-600 mt-2">You don’t have permission to access this page.</p>
 
-        <a href="{{ route('logout') }}" class="mt-6 inline-block bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 transition duration-300">
+        <a href="{{ route('dashboard') }}" class="mt-6 inline-block bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 transition duration-300">
             <i class="fas fa-arrow-left"></i> Go Back Home
         </a>
     </div>

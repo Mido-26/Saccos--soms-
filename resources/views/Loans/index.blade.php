@@ -42,12 +42,16 @@
     </div> --}}
 
     <!-- Loan Table -->
-    
+    @php
+        $currency = $settings->currency;
+    @endphp
+
     <x-table :headers="[
                 ['label' => 'ID', 'sortable' => true],
                 ['label' => 'Member Name', 'sortable' => true],
-                ['label' => 'Loan Amount (TZS)', 'sortable' => true],
+                ['label' => 'Loan Amount ('.$currency.')', 'sortable' => true],
                 ['label' => 'Repayment Period'],
+                ['label' => 'Outstanding Amount ('.$currency.')'],
                 ['label' => 'Interest Rate (%)'],
                 ['label' => 'Status'],
                 ]" :rows="$loans
@@ -55,8 +59,9 @@
                     fn($loan) => [
                         'ID' => $loan->id,
                         'Member Name' => $loan->user->first_name . ' ' . $loan->user->last_name,
-                        'Loan Amount (TZS)' => number_format($loan->loan_amount, 2),
+                        'Loan Amount ('.$currency.')' => number_format($loan->loan_amount, 2),
                         'Repayment Period' => $loan->loan_duration . ' Months',
+                        'Outstanding Amount ('.$currency.')' => number_format($loan->outstanding_amount, 2),
                         'Interest Rate (%)' => $loan->interest_rate,
                         'Status' => view('components.status-badge', ['status' => $loan->status]),
                         

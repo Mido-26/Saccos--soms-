@@ -15,6 +15,11 @@ class DashboardController extends Controller
     public function index(){
         $user = Auth::user();
 
+        // check if user has pending loan or active loan 
+        $loans = Loans::where('user_id', $user->id)->where('status', '!=','completed')->first() ?? null;
+
+        // get latest 3 transaction of the user
+        $userTransactions = Transactions::where('user_id', $user->id)->latest()->take(3)->get();
         $role = session('role'); 
         $savings = Savings::all();
         $members = User::count();  
@@ -22,7 +27,7 @@ class DashboardController extends Controller
         $loanCounts = Loans::selectRaw("
         COUNT(CASE WHEN status = 'disbursed' THEN 1 END) AS disbursed_loans,
         COUNT(CASE WHEN status = 'completed' THEN 1 END) AS completed_loans,
-        COUNT(CASE WHEN status = 'defaulted' THEN 1 END) AS defaulted_loans,
+        COUNT(CASE WHEN status = 'overdue' THEN 1 END) AS defaulted_loans,
         COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_loans
         ")->first();    
         
@@ -36,6 +41,7 @@ class DashboardController extends Controller
             $totalSavings += $saving->account_balance;
         }
 
+        // dd($loans);
         // dd($totalSavings);
         $pending_loans = $loanCounts->pending_loans;
         $disbursed_loans = $loanCounts->disbursed_loans;
@@ -43,7 +49,7 @@ class DashboardController extends Controller
         $defaulted_loans = $loanCounts->defaulted_loans;
         $notifications = Auth::user()->notifications()->latest()->take(3)->get();
         // $config = Settings::all(); 
-        return view('dashboard.dashboard', compact('user', 'role','members','pending_loans', 'disbursed_loans', 'completed_loans', 'defaulted_loans','totalContribution', 'totalSavings', 'notifications'));
+        return view('dashboard.dashboard', compact('user', 'role','members','pending_loans', 'disbursed_loans', 'completed_loans', 'defaulted_loans','totalContribution', 'totalSavings', 'notifications', 'loans', 'userTransactions'));
     }
 
     public function switchUser(Request $request){

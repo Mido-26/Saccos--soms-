@@ -22,7 +22,7 @@ class RolePolicy
         // $role = session('role');
         $role = session('role');
         // Check if the user has a valid role (adjust according to your application's roles)
-        return  $role == 'admin' || $role == 'staff'; // Example roles
+        return  $role == 'admin' || $role == 'staff' || $role == 'superadmin'; // Example roles
     }
     
     public function switchRole(): bool

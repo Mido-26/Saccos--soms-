@@ -72,7 +72,7 @@ $(document).ready(function () {
     // Fetch notifications every 5 seconds
     setInterval(() => {
         loadNotifications();
-    }, 5000);
+    }, 30000);
 
     // Close notifications dropdown when clicked outside
     // $(document).click(function (e) {

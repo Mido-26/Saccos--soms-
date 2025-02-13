@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('monthly_payments', 10, 2); // Principal loan amount
             $table->decimal('principal_amount', 10, 2); // Principal loan amount
             $table->decimal('loan_amount', 10, 2); // Total loan amount (principal + interest)
+            $table->decimal('outstanding_amount', 10, 2)->default(0); // Outstanding loan amount
             $table->decimal('interest_rate', 5, 2); // Interest rate as percentage
             $table->text('description')->nullable(); // Optional description of the loan
             $table->enum('status', ['pending', 'approved', 'rejected', 'disbursed', 'completed', 'overdue'])->default('pending'); // Loan status

@@ -12,6 +12,8 @@
         'inactive' => 'border-1 bg-red-100 text-red-800',
         'deposit' => 'bg-green-100 text-green-800',
         'withdrawal' => 'bg-red-100 text-red-800',
+        'savings_withdrawal' => 'bg-red-100 text-red-800',
+        'savings_deposit' => 'bg-green-100 text-green-800',
     ];
 @endphp
 

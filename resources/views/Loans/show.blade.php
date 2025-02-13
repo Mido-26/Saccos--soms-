@@ -34,7 +34,7 @@
 
                 <!-- Principal Amount -->
                 <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-sm text-gray-500 font-semibold">Principal Amount (TZS)</p>
+                    <p class="text-sm text-gray-500 font-semibold">Principal Amount ({{$settings->currency}})</p>
                     <p class="text-lg text-gray-800">
                         <i class="fas fa-money-bill-wave mr-2"></i>
                         {{ number_format($loan->principal_amount, 2) }}
@@ -43,7 +43,7 @@
 
                 <!-- Total Amount Payable -->
                 <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-sm text-gray-500 font-semibold">Total Amount Payable (TZS)</p>
+                    <p class="text-sm text-gray-500 font-semibold">Total Amount Payable ({{$settings->currency}})</p>
                     <p class="text-lg text-gray-800">
                         <i class="fas fa-coins mr-2"></i>
                         {{ number_format($loan->loan_amount, 2) }}
@@ -185,12 +185,16 @@
                                 <i class="fas fa-times-circle mr-2"></i>
                                 Your loan has been rejected.
                             </p>
-                        @elseif ($loan->status === 'disbursed')
+                        @elseif($loan->status == 'disbursed')
                             <p class="text-gray-600">
                                 <i class="fas fa-check-double mr-2"></i>
                                 Your loan has been disbursed.
+                                <a href="{{ route('loans.installments', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
+                                    View your installments
+                                </a>
                             </p>
                         @endif
+                        
                     </div>
                 </div>
             @endif
@@ -227,7 +231,7 @@
                                 </button>
                             </form>
                         @endif
-                        @if ($loan->status === 'pending' || $loan->status === 'approved')
+                        {{-- @if ($loan->status === 'pending' || $loan->status === 'approved')
                             <form
                                 action="{{ route('loans.updateStatus', ['loan' => $loan->id, 'action' => 'disbursed']) }}"
                                 method="POST">
@@ -239,7 +243,7 @@
                                     Disburse Loan
                                 </button>
                             </form>
-                        @endif
+                        @endif --}}
 
                     </div>
                 </div>

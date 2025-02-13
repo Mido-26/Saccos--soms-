@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id(); // Primary key
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // User associated with the transaction
             $table->foreignId('initiator_id')->constrained('users')->onDelete('cascade'); // User who initiated the transaction
-            $table->enum('type', ['deposit', 'withdrawal', 'loan_payment', 'loan_disbursement']); // Type of transaction
+            $table->enum('type', ['savings_deposit', 'savings_withdrawal', 'loan_payment', 'loan_disbursement']); // Type of transaction
             $table->decimal('amount', 15, 2); // Transaction amount with precision for currency
             $table->string('transaction_reference')->unique(); // Unique identifier for the transaction
             $table->string('payment_method')->nullable(); // Payment method used (e.g., 'mobile money', 'bank transfer')

@@ -17,12 +17,12 @@ class Transactions extends Model
          }
     public static function generateTransactionReference()
     {
-            return 'TX-' . strtoupper(uniqid()) . '-' . now()->timestamp;
+        return 'TX-' . strtoupper(uniqid()) . '-' . now()->timestamp;
         }
-
+        
         public function initiator()
         {
-                return $this->belongsTo(User::class);
-             }  
+        return $this->belongsTo(User::class);
+        }  
              
 }

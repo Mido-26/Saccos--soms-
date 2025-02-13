@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Loans;
 use App\Models\Savings;
+use App\Models\Settings;
 use App\Models\Transactions;
 use Illuminate\Http\Request;
+use App\Models\LoanRepayments;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreTransactionsRequest;
@@ -43,9 +46,10 @@ class TransactionsController extends Controller
 
     public function create()
     {
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::user()->can('viewAdminDashboard')) {
             return redirect()->route('unauthorized');
         }
+        
 
         // Retrieve all user IDs
         $ids = User::pluck('id')->toArray();
@@ -57,72 +61,140 @@ class TransactionsController extends Controller
     }
 
     public function store(Request $request)
-    {
-        if (Auth::user()->role !== 'admin') {
-            return redirect()->route('unauthorized');
-        }
+{
+    // Only admins can perform transactions.
+    // if (Auth::user()->role !== 'admin' ) {
+    //     return redirect()->route('unauthorized');
+    // }
+    if (!Auth::user()->can('viewAdminDashboard')) {
+        return redirect()->route('unauthorized');
+    }
 
-        // dd($request->all());
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'type' => 'required|string',
-            'amount' => 'required|numeric|min:20000',
-            'description' => 'nullable|string',
-            'payment_method' => 'required|string',
-        ]);
-    
+    $setting = Settings::first();
+    // dd($setting);
+    // Retrieve the minimum saving amount from the settings.
+    $minSavingAmount = $setting->min_savings;
+    // dd($minSavingAmount);
+    // Set up base validation rules.
+    $rules = [
+        'user_id'        => 'required|exists:users,id',
+        'type'           => 'required|string|in:savings_deposit,savings_withdrawal,loan_payment,loan_disbursement',
+        'amount'         => 'required|numeric|min:' .$minSavingAmount,
+        'description'    => 'nullable|string',
+        'payment_method' => 'required|string',
+    ];
 
-        // Start a database transaction
-        DB::beginTransaction();
+    // Add extra rules for loan-specific fields.
+    if ($request->type === 'loan_payment') {
+        $rules['repayment_date'] = 'nullable|date';
+    }
+    if ($request->type === 'loan_disbursement') {
+        $rules['disbursement_note'] = 'nullable|string';
+    }
 
-        try {
-            // Fetch the savings account
-            $user = User::findOrFail($request->user_id);
-            // dd($user);
-            $savingsAccount = $user->savings;
-            //  dd($savingsAccount);
-            // $userId = $->user_id;
-            // Handle the transaction balance update based on the type (Deposit/Withdrawal)
-            if ($request->type == 'deposit') {
-                $savingsAccount->account_balance += $request->amount;  // Increase balance on deposit
+    $validated = $request->validate($rules);
+
+    DB::beginTransaction();
+
+    try {
+        // Retrieve the user.
+        $user = User::findOrFail($validated['user_id']);
+
+        // Process deposit and withdrawal transactions: update savings.
+        if (in_array($validated['type'], ['savings_deposit', 'savings_withdrawal'])) {
+            $savingsAccount = $user->savings; // Assumes a one-to-one relation: User->savings
+
+            if ($validated['type'] === 'savings_deposit') {
+                $savingsAccount->account_balance += $validated['amount'];
                 $savingsAccount->last_deposit_date = now();
-            } elseif ($request->type == 'withdrawal') {
-                if ($savingsAccount->account_balance >= $request->amount) {
-                    $savingsAccount->account_balance -= $request->amount;  // Decrease balance on withdrawal
-                    $savingsAccount->last_deposit_date = now();
-                } else {
+            } elseif ($validated['type'] === 'savings_withdrawal') {
+                if ($savingsAccount->account_balance < $validated['amount']) {
                     return redirect()->back()->withErrors(['error' => 'Insufficient balance for withdrawal.']);
                 }
+                $savingsAccount->account_balance -= $validated['amount'];
+                $savingsAccount->last_deposit_date = now();
+            }
+            $savingsAccount->save();
+        }
+        // Process a loan repayment.
+        elseif ($validated['type'] === 'loan_payment') {
+            // Look for the user's disbursed (active) loan.
+            $loan = $user->loan()->where('status', 'disbursed')->first();
+            if (!$loan) {
+                return redirect()->back()->withErrors(['error' => 'No disbursed loan found for repayment.']);
             }
 
-            // Save the updated savings account balance
-            $savingsAccount->save();
-
-            // Create the transaction with polymorphic relationship
-            $transaction = Transactions::create([
-                'user_id' => $validated['user_id'],
-                'type' => $validated['type'],
-                'amount' => $validated['amount'],
-                'description' => $validated['description'] ?? null,
-                'transaction_reference' => Transactions::generateTransactionReference(), // Generate unique reference
-                'payment_method' => $validated['payment_method'],
-                'initiator_id' => Auth::id(), // Logged-in user
-                'completed_at' => now(),
+            // Create a repayment installment record.
+            LoanRepayments::create([
+                'loan_id'        => $loan->id,
+                'amount'         => $validated['amount'],
+                'repayment_date' => $validated['repayment_date'] ?? now(),
             ]);
 
-            // Commit the transaction
-            DB::commit();
+            // Deduct the installment amount from the loan's outstanding balance.
+            $loan->outstanding_amount -= $validated['amount'];
 
-            // Redirect to the transactions index with a success message
-            return redirect()->route('transactions.index')->with('success', 'Transaction added successfully and balance updated.');
-        } catch (\Exception $e) {
-            // Rollback in case of any error
-            DB::rollBack();
-
-            // Redirect with error message
-            return redirect()->back()->withErrors(['error' => 'An error occurred: ' . $e->getMessage()]);
+            // If the loan is fully repaid, mark its status as 'paid'.
+            if ($loan->outstanding_amount <= 0) {
+                $loan->status = 'paid';
+                $loan->outstanding_amount = 0;
+            }
+            $loan->save();
         }
+        // Process a loan disbursement.
+        elseif ($validated['type'] === 'loan_disbursement') {
+            // Check if the user already has a loan record.
+            $loan = $user->loan()->first();
+            if ($loan) {
+                // Update existing loan.
+                $loan->disbursed_amount += $validated['amount'];
+                $loan->outstanding_amount += $validated['amount'];
+                $loan->status = 'disbursed';
+            } else {
+                // Create a new loan record.
+                $loan = Loans::create([
+                    'user_id'            => $user->id,
+                    'disbursed_amount'   => $validated['amount'],
+                    'outstanding_amount' => $validated['amount'],
+                    'status'             => 'disbursed',
+                ]);
+            }
+            $loan->save();
+        }
+
+        // Optionally store extra loan-related fields in transaction metadata.
+        $metadata = [];
+        if ($validated['type'] === 'loan_payment') {
+            $metadata['repayment_date'] = $validated['repayment_date'] ?? now();
+        }
+        if ($validated['type'] === 'loan_disbursement') {
+            $metadata['disbursement_note'] = $validated['disbursement_note'] ?? null;
+        }
+
+        // Create the transaction record.
+        $transaction = Transactions::create([
+            'user_id'               => $validated['user_id'],
+            'type'                  => $validated['type'],
+            'amount'                => $validated['amount'],
+            'description'           => $validated['description'] ?? null,
+            'transaction_reference' => Transactions::generateTransactionReference(),
+            'payment_method'        => $validated['payment_method'],
+            'initiator_id'          => Auth::id(),
+            'completed_at'          => now(),
+            'metadata'              => !empty($metadata) ? json_encode($metadata) : null,
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('transactions.index')
+            ->with('success', 'Transaction processed successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->withErrors(['error' => 'An error occurred: ' . $e->getMessage()]);
     }
+}
+
+
 
     public function show(Transactions $transaction)
 {
@@ -167,17 +239,23 @@ class TransactionsController extends Controller
         $savingsAccount = $transaction->user->savings;
         // dd($savingsAccount);
         // Reverse the previous transaction impact on the account balance
-        if ($transaction->type == 'deposit') {
+        if ($transaction->type == 'savings_deposit') {
             $savingsAccount->account_balance -= $transaction->amount;
-        } elseif ($transaction->type == 'withdrawal') {
+        } elseif ($transaction->type == 'savings_withdrawal') {
             $savingsAccount->account_balance += $transaction->amount;
         }
 
         // Update balance based on new transaction type and amount
-        if ($request->type == 'deposit') {
+        if ($request->type == 'savings_deposit') {
             $savingsAccount->account_balance += $request->amount;
             $savingsAccount->last_deposit_date = now();
-        } elseif ($request->type == 'withdrawal') {
+        } elseif ($request->type == 'savings_withdrawal') {
+            // check if user has active loan
+            // $loan = $transaction->user->loan()->where('status', 'disbursed')->first();
+            $loan = Loans::where('user_id', $userId)->where('status', 'disbursed')->first();
+            if ($loan) {
+                return redirect()->back()->withErrors(['error' => 'Cannot withdraw savings with an active loan.']);
+            }
             if ($savingsAccount->account_balance >= $request->amount) {
                 $savingsAccount->account_balance -= $request->amount;
             } else {

@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\Loans;
 use App\Models\Settings;
 use App\Policies\RolePolicy;
+use App\Observers\LoanObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Loans::observe(LoanObserver::class);
         function generateProfileAcronym($firstName, $secondName)
     {
         $firstLetter = strtoupper(substr($firstName, 0, 1));

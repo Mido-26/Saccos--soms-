@@ -8,6 +8,7 @@ use App\Models\Referee;
 use App\Models\Savings;
 use App\Models\Settings;
 use Illuminate\Http\Request;
+use function PHPSTORM_META\type;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -17,9 +18,9 @@ use App\Http\Requests\UpdateLoansRequest;
 use App\Notifications\RefereeNotification;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\LoanApprovedNotification;
-use App\Notifications\LoanRejectedNotification;
 
-use function PHPSTORM_META\type;
+use App\Notifications\LoanCreationNotification;
+use App\Notifications\LoanRejectedNotification;
 
 class LoansController extends Controller
 {
@@ -41,79 +42,126 @@ class LoansController extends Controller
         // return view('loans.index',compact('loans'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+   // In your LoansController
+
+/**
+ * Show the form for creating a new resource.
+ */
     public function create()
     {
-        $settin = Settings::first();
-        $minSavings = $settin->min_savings_guarantor;
-        $maxLoans = $settin->max_guarantor;
-        $no = true;
+        $settings = Settings::first();
+        $minSavings = $settings->min_savings_guarantor ?? 0;
+        $allowGuarantor = $settings->allow_guarantor; // true/false flag
+        $minGuarantors = $allowGuarantor ? $settings->min_guarantor : 0; 
+
         $user = Auth::user();
 
-        // Get all savings accounts with a balance greater than or equal to $minSavings, excluding the current user
+        // Get all savings accounts (with their user) that have sufficient balance and are not the current user.
         $savings = Savings::with('user')
             ->where('account_balance', '>=', $minSavings)
-            ->where('user_id', '!=', $user->id) // Exclude current user
+            ->where('user_id', '!=', $user->id)
             ->get();
 
+        // If no eligible savings accounts are found, return a message.
         if ($savings->isEmpty()) {
             $referee = ['referee' => 'No referee contact your admin'];
             $no = null;
-            return view('loans.create',compact('referee', 'no'));
-        }        
-        // Loop through savings to access user data.
-        // foreach ($savings as $saving) {
-        //     $referee = $saving->user; // Access the user directly via the relationship.
-        //     // Do something with $user and $saving.
-        // }
+            return view('loans.create', compact('referee', 'no', 'allowGuarantor', 'minGuarantors'));
+        }
+
         $referee = $savings;
-        // dd($referee);
-        return view('loans.create',compact('referee', 'no'));
+        $no = true;
+        return view('loans.create', compact('referee', 'no', 'allowGuarantor', 'minGuarantors'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    // $settings = Settings::first();
-    // $loanAmount = $settings->max_loan_amount;
-    $validated = $request->validate([
-        'loanAmount' => 'required|numeric|min:1|max:1000000',
-        'loanDuration' => 'required|integer|min:1|max:60',
-        'interestRate' => 'required|numeric|min:0|max:100',
-        'principalAmount' => 'required|numeric|min:0',
-        'monthlyPayments' => 'required|numeric|min:0',
-        'description' => 'required|string|max:255',
-        'referee_0' => 'required|exists:users,id',
-        'referee_1' => 'required|exists:users,id',
-        'referee_2' => 'required|exists:users,id',
-    ]);
+    {
+        $settings = Settings::first();
+        $user = Auth::user();
+        $savings = $user->savings; // Assumes one-to-one relation
+        $accountBalance = $savings->account_balance;
 
-    $loan = Loans::create([
-        'loan_amount' => $validated['principalAmount'],
-        'loan_duration' => $validated['loanDuration'],
-        'interest_rate' => $validated['interestRate'],
-        'principal_amount' => $validated['loanAmount'],
-        'monthly_payments' => $validated['monthlyPayments'],
-        'description' => $validated['description'],
-        'user_id' => Auth::id(),
-    ]);
+        // Determine maximum loan amount based on loan type
+        if ($settings->loan_type === 'fixed') {
+            $loanAmount = $settings->loan_max_amount;
+        } else {
+            $loanAmount = $accountBalance * $settings->loan_max_amount;
+        }
+        $loanDuration = $settings->loan_duration;
+        $interestRate = $settings->interest_rate;
 
-    foreach (['referee_0', 'referee_1', 'referee_2'] as $refereeKey) {
-        Referee::create([
-            'loan_id' => $loan->id,
-            'user_id' => $validated[$refereeKey],
+        // Build the base validation rules.
+        $rules = [
+            'loanAmount'      => 'required|numeric|min:1|max:' . $loanAmount,
+            'loanDuration'    => 'required|integer|min:1|max:' . $loanDuration,
+            'interestRate'    => 'required|numeric|min:0|max:' . $interestRate,
+            'principalAmount' => 'required|numeric|min:0',
+            'monthlyPayments' => 'required|numeric|min:0',
+            'description'     => 'required|string|max:255',
+        ];
+
+        // If guarantors are allowed, require at least the minimum number of referee fields.
+        if ($settings->allow_guarantor) {
+            $minGuarantors = $settings->min_guarantor;
+            for ($i = 0; $i < $minGuarantors; $i++) {
+                $rules['referee_' . $i] = 'required|exists:users,id';
+            }
+            // Optionally, validate additional referee fields (if any) as nullable.
+            // Count all referee_* fields in the request.
+            $refereeCount = count(array_filter($request->all(), function ($key) {
+                return strpos($key, 'referee_') === 0;
+            }, ARRAY_FILTER_USE_KEY));
+            for ($i = $minGuarantors; $i < $refereeCount; $i++) {
+                $rules['referee_' . $i] = 'nullable|exists:users,id';
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        // check if the user has an active loan if yes return an error
+        $activeLoan = Loans::where('user_id', $user->id)->where('status', 'approved')
+                                                                            ->orwhere('status', 'disbursed')
+                                                                            ->orwhere('status', 'pending')
+                                                                            ->first();
+
+        if ($activeLoan) {
+            return redirect()->route('loans.index')->with('error', 'You have either an active loan or a pending loan application!');
+        }                                                                    
+
+        // Create the loan record.
+        $loan = Loans::create([
+            'loan_amount'      => $validated['principalAmount'],
+            'loan_duration'    => $validated['loanDuration'],
+            'interest_rate'    => $validated['interestRate'],
+            'principal_amount' => $validated['loanAmount'],
+            'monthly_payments' => $validated['monthlyPayments'],
+            'description'      => $validated['description'],
+            'user_id'          => $user->id,
         ]);
 
-        $referee = User::find($validated[$refereeKey]);
-        $referee->notify(new RefereeNotification($loan, $referee->name));
+        // If guarantors are allowed, loop through all referee inputs.
+        if ($settings->allow_guarantor) {
+            foreach ($validated as $key => $value) {
+                if (strpos($key, 'referee_') === 0 && !empty($value)) {
+                    Referee::create([
+                        'loan_id' => $loan->id,
+                        'user_id' => $value,
+                    ]);
+                    $refereeUser = User::find($value);
+                    $refereeUser->notify(new RefereeNotification($loan, $refereeUser->name));
+                }
+            }
+        }
+
+        // Notify the user with a delay of 3 minutes
+        (new LoanCreationNotification($loan))->delay(now()->addMinutes(3));
+
+        return redirect()->route('loans.index')->with('success', 'Loan created and referees notified successfully!');
     }
 
-    return redirect()->route('loans.index')->with('success', 'Loan created and referees notified successfully!');
-}
 
     /**
      * Display the specified resource.

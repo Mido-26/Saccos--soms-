@@ -19,5 +19,9 @@ class Loans extends Model
     public function referee(){
         return $this->hasMany(Referee::class, 'loan_id');
     }
+
+    public function repayments(){
+        return $this->hasMany(LoanRepayments::class, 'loan_id');
+    }
     
 }

@@ -35,7 +35,7 @@
                 <p class="flex items-center">
                     <span class="font-semibold text-gray-800 w-40">Amount:</span>
                     <span class="text-green-600 font-semibold">
-                        {{ number_format($transaction->amount, 2) }} TZS
+                        {{ number_format($transaction->amount, 2) }} {{$settings->currency}}
                     </span>
                 </p>
                 <p class="flex items-center">
