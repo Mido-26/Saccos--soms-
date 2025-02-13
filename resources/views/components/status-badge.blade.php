@@ -14,6 +14,8 @@
         'withdrawal' => 'bg-red-100 text-red-800',
         'savings_withdrawal' => 'bg-red-100 text-red-800',
         'savings_deposit' => 'bg-green-100 text-green-800',
+        'loan_repayment' => 'bg-green-100 text-green-800',
+        'loan_disbursement' => 'bg-blue-100 text-blue-800',
     ];
 @endphp
 

@@ -40,9 +40,10 @@
                 </p>
                 <p class="flex items-center">
                     <span class="font-semibold text-gray-800 w-40">Transaction Type:</span>
-                    <span class="{{ $transaction->type === 'deposit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }} px-3 py-1 rounded-full text-xs font-semibold">
+                    {{-- <span class="{{ $transaction->type === 'deposit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }} px-3 py-1 rounded-full text-xs font-semibold">
                         {{ ucfirst($transaction->type) }}
-                    </span>
+                    </span> --}}
+                    <x-status-badge :status="$transaction->type" />
                 </p>
             </div>
     

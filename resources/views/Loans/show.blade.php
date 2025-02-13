@@ -24,6 +24,7 @@
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <p class="text-sm text-gray-500 font-semibold">Borrower</p>
                     <p class="text-lg text-gray-800">
+                        
                         <a href="{{ route('users.show', $loan->user->id) }}" class="text-blue-500 hover:underline"
                             target="_blank">
                             <i class="fas fa-user-circle mr-2"></i>
@@ -89,7 +90,7 @@
                     <li class="text-gray-700">
                         <i
                             class="fas fa-check-circle {{ $loan->disbursed_at ? 'text-green-500' : 'text-gray-400' }} mr-2"></i>
-                        Disbursed on: {{ $loan->disbursed_at ? $loan->disbursed_at->format('d M Y') : 'N/A' }}
+                        Disbursed on: {{ $loan->disbursed_at ? \Carbon\Carbon::parse($loan->disbursed_at)->format('d M Y H:i:s') : 'N/A' }}
                     </li>
                 </ul>
             </div>
@@ -189,7 +190,7 @@
                             <p class="text-gray-600">
                                 <i class="fas fa-check-double mr-2"></i>
                                 Your loan has been disbursed.
-                                <a href="{{ route('loans.installments', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
+                                <a href="{{ route('loans.index', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
                                     View your installments
                                 </a>
                             </p>
@@ -200,7 +201,7 @@
             @endif
 
             <!-- Admin Actions -->
-            @if (auth()->user()->role === 'admin')
+            @if (auth()->user()->role === 'admin' || auth()->user()->role === 'superadmin')
                 <div class="mb-8">
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">
                         <i class="fas fa-tools mr-2"></i>
@@ -250,7 +251,7 @@
             @endif
 
             <!-- Admin Logs -->
-            @if (auth()->user()->role === 'admin')
+            @if (auth()->user()->role === 'admin' || auth()->user()->role === 'superadmin')
                 <div>
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">
                         <i class="fas fa-clipboard-list mr-2"></i>

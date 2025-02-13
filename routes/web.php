@@ -46,10 +46,15 @@ Route::middleware(CheckConfigs::class)->group( function(){
         Route::patch('profile/{user}', [ProfileController::class, 'updateProfile'])->name('profile.update');
         Route::patch('profile/{user}/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
         
+        // Dashboard routes
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::Post('dashboard', [DashboardController::class, 'switchUser'])->name('dashboard');
+
+        // transactions routes
+        Route::get('transactions/user/{user?}', [TransactionsController::class, 'index'])->name('transactions.user');
         Route::resource('transactions', TransactionsController::class);
 
+        // User management routes
         Route::middleware([RoleMiddleware::class . ':admin,staff'])->group( function () : void {
             Route::resource('savings', SavingsController::class);
             Route::resource('users', UserController::class);
@@ -64,19 +69,16 @@ Route::middleware(CheckConfigs::class)->group( function(){
         Route::get('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
         Route::get('/notifications/clear-all', [NotificationController::class, 'destroy'])->name('notifications.clearAll');
 
-
-        // Route::get('/loans', [LoansController::class, 'index'])->name('loans.index');
-        // Route::get('/loans/pending', [LoansController::class, 'pending'])->name('loans.pending');
-        // Route::get('/loans/approved', [LoansController::class, 'approved'])->name('loans.approved');
-
-    //     Route::post('/loans/{loan}/{referee}/{admin}/{action}', 'LoanController@updateStatus')
-    // ->name('loans.updateStatus');
-
+        // Loans routes
+        
+        Route::get('/loans/status/{status}', [LoansController::class, 'index'])->name('loans.status');
         Route::resource('loans', LoansController::class);
+        Route::get('/loans/user/{user}', [LoansController::class, 'index'])->name('loans.user');
         Route::patch('/loans/{loan}/{action}/{referee?}/', [LoansController::class, 'updateStatus'])->name('loans.updateStatus');
 
+        // Settings routes
         Route::get('/unauthorized', function () {
-            return view('403');
+            return view('/errors/403');
         })->name('unauthorized');
         // Route for the Settings page (GET request)
 
@@ -92,7 +94,7 @@ Route::middleware(CheckConfigs::class)->group( function(){
     // // Custom Reports
     // Route::get('/reports/custom', [ReportsController::class, 'customReports'])->name('reports.custom');
     Route::get('/development-not-available', function() {
-        return view('inprogress');
+        return view('/errors/inprogress');
     })->name('inprogress');
     });
 
@@ -102,7 +104,7 @@ Route::middleware(CheckConfigs::class)->group( function(){
         })->name('inactive');
         
         Route::get('/support', function () {
-            return view('support');
+            return view('/errors/support');
         })->name('support');
         
     });

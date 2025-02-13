@@ -14,7 +14,7 @@
 
             <div class="flex items-center gap-4">
 
-                @if (Auth::check() && (Auth::user()->role == 'staff' || Auth::user()->role == 'admin'))
+                @if (Auth::check() && (Auth::user()->role == 'staff' || Auth::user()->role == 'admin' || Auth::user()->role == 'superadmin'))
                     <form id="roleForm" action="{{ route('dashboard') }}" method="POST">
                         @csrf <!-- Protects the form from cross-site request forgery attacks -->
 
@@ -54,6 +54,7 @@
                     </form>
                 @endif
 
+                
 
                 {{-- @push('scripts') --}}
                 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

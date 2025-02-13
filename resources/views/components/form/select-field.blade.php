@@ -16,7 +16,7 @@
         @if ($icon)
             <i class="{{ $icon }} absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
         @endif
-        <select name="{{ $name }}" id="{{ $name }}" {{ $required ? 'required' : '' }}
+        <select name="{{ $name }}" id="{{ $id }}" {{ $required ? 'required' : '' }}
             {{ $attributes->merge(['class' => 'w-full border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500']) }}>
             <option value="" disabled {{ is_null($selected) ? 'selected' : '' }}>{{ $placeholder }}</option>
             @foreach ($options as $key => $option)

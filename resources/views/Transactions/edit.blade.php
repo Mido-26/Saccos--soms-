@@ -17,8 +17,8 @@
 
                 {{-- Transaction Type --}}
                 <x-form.select-field name="type" label="Transaction Type" :options="[
-                    'deposit' => 'Deposit',
-                    'withdrawal' => 'Withdrawal',
+                    'savings_deposit' => 'Savings Deposit',
+                    'savings_withdrawal' => 'Savings Withdrawal',
                     'loan_payment' => 'Loan Payment',
                     'loan_disbursement' => 'Loan Disbursement',
                 ]"

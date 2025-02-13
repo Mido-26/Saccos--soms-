@@ -27,20 +27,33 @@ class LoansController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $user = Auth::user();
-        $role = session('role'); 
-        if ($role === 'admin' || $role === 'superadmin') {
-            $loans = Loans::paginate(15);
-            return view('loans.index',compact('loans'));
-        }else{
-            $loans = Loans::where('user_id', $user->id)->paginate(15);
-            return view('loans.index',compact('loans'));
-        }
-        
-        // return view('loans.index',compact('loans'));
+    public function index(Request $request)
+{
+    // dd($request->route('status'));
+    $loanStatus = $request->route('status'); 
+    $userLoans = $request->route('user');
+    $user = Auth::user();
+    $role = session('role');
+
+    $query = Loans::query();
+
+    if (!empty($loanStatus)) {
+        $query->where('status', $loanStatus);
     }
+
+    if (!empty($userLoans)) {
+        $query->where('user_id', $userLoans);
+    }
+
+    if ($role === 'admin' || $role === 'superadmin' || $role === 'staff') {
+        $loans = $query->paginate(15);
+    } else {
+        $loans = $query->where('user_id', $user->id)->paginate(15);
+    }
+
+    return view('loans.index', compact('loans'));
+}
+
 
    // In your LoansController
 

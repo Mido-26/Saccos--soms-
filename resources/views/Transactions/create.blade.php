@@ -6,26 +6,39 @@
             <form action="{{ route('transactions.store') }}" method="POST" class="space-y-6">
                 @csrf
                 @include('components.sess_msg')
+
                 {{-- User ID --}}
-                {{-- @dump($users) --}}
-                   
-                <x-form.select-field name="user_id" label="User Account" :options="$users" placeholder="Select a user" icon="fas fa-user"
-                    :required="true" />
+                <x-form.select-field name="user_id" label="User Account"  :options="$users"
+                    placeholder="Select a user" icon="fas fa-user" :required="true" />
 
                 {{-- Transaction Type --}}
-                <x-form.select-field name="type" label="Transaction Type" :options="[
-                    'savings_deposit' => 'Savings Deposit',
-                    'savings_withdrawal' => 'Savings Withdrawal',
-                    'loan_disbursement' => 'Loan Disbursement',
-                ]"
+                <x-form.select-field id="transactionType" name="type" label="Transaction Type" 
+                    :options="[
+                        'savings_deposit' => 'Savings Deposit',
+                        'savings_withdrawal' => 'Savings Withdrawal',
+                        'loan_disbursement' => 'Loan Disbursement',
+                    ]"
                     placeholder="Select a transaction type" icon="fas fa-exchange-alt" :required="true" />
 
-                {{-- Amount --}}
-                <x-form.input id="amount" name="amount" label="Amount" type="number"
-                    placeholder="Enter the transaction amount" icon="fas fa-dollar-sign" step="0.01" :required="true" />
+                {{-- Loans To Be Disbursed (Initially Hidden) --}}
+                <div id="loanField" class="hidden">
+                    <x-form.select-field name="loans" label="Loans To Be Disbursed"  :options="$loans"
+                        placeholder="Select a Loan to be disbursed" icon="fas fa-wallet" :required="false" />
+                </div>
+    
+                {{-- Amount (Initially Visible) --}}
+                <div id="amountField">
+                    <x-form.input id="amount" name="amount" label="Amount" type="number"
+                        placeholder="Enter the transaction amount" icon="fas fa-dollar-sign" step="0.01" :required="false" />
+                </div>
 
                 {{-- Payment Method --}}
-                <x-form.select-field name="payment_method" label="Payment Method" :options="['bank_transfer' => 'Bank Transfer', 'mobile_money' => 'Mobile Money', 'cash' => 'Cash']"
+                <x-form.select-field name="payment_method" label="Payment Method" 
+                    :options="[
+                        'bank_transfer' => 'Bank Transfer', 
+                        'mobile_money' => 'Mobile Money', 
+                        'cash' => 'Cash'
+                    ]"
                     placeholder="Select a payment method" icon="fas fa-wallet" :required="true" />
 
                 {{-- Description --}}
@@ -35,28 +48,34 @@
                 {{-- Submit Button --}}
                 <x-form.button icon="fas fa-save"> Submit Transaction </x-form.button>
             </form>
-
-
         </div>
 
         <script>
-            const form = document.getElementById('transactionForm');
-            const savingsInput = document.getElementById('savings_account');
-            const datalist = document.getElementById('savings_list');
-            const errorMessage = document.getElementById('error-message');
-
-            form.addEventListener('submit', function(e) {
-                const options = Array.from(datalist.options).map(option => option.value);
-                if (!options.includes(savingsInput.value)) {
-                    e.preventDefault();
-                    errorMessage.classList.remove('hidden');
-                    savingsInput.classList.add('border-red-500');
-                } else {
-                    errorMessage.classList.add('hidden');
-                    savingsInput.classList.remove('border-red-500');
-                }
+            document.addEventListener("DOMContentLoaded", function () {
+                const transactionType = document.getElementById("transactionType");
+                const loanField = document.getElementById("loanField");
+                const amountField = document.getElementById("amountField");
+        
+                // Debugging
+                // console.log("Transaction Type Element:", transactionType);
+        
+                // if (!transactionType) {
+                //     console.error("Error: #transactionType not found in the DOM.");
+                //     return;
+                // }
+        
+                transactionType.addEventListener("change", function () {
+                    if (this.value === "loan_disbursement") {
+                        loanField.classList.remove("hidden");
+                        amountField.classList.add("hidden");
+                    } else {
+                        loanField.classList.add("hidden");
+                        amountField.classList.remove("hidden");
+                    }
+                });
             });
         </script>
-
+        
+        
     @endsection
 </x-layout>

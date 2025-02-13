@@ -37,7 +37,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Active Loan Card -->
-        @if ($loans->exists())
+        @if ($loans)
             @php
                 // Determine dynamic styling and text based on loan status.
                 // Expected statuses: pending, approved, rejected, disbursed, completed, overdue
@@ -183,9 +183,8 @@
             </div>
         @endif
 
-
         <!-- Apply for Loan Card -->
-        @if (!$loans->exists())
+        @if (!$loans)
             <div class="bg-white shadow-lg rounded-lg pt-4 pb-4 px-4 border-t-4 border-blue-500">
                 <div class="flex items-center mb-2">
                     <div class="p-2 bg-blue-500 rounded-xl">
@@ -227,10 +226,10 @@
             <hr>
             <ul class="mt-4 mb-6 space-y-2">
                 @forelse ($userTransactions as $transaction)
-                @php
-                    // replace __ with space and capitalize the transaction type
-                    $transactionType = ucfirst(str_replace('_', ' ', $transaction->type));
-                @endphp
+                    @php
+                        // replace __ with space and capitalize the transaction type
+                        $transactionType = ucfirst(str_replace('_', ' ', $transaction->type));
+                    @endphp
                     <li class="text-gray-600 flex justify-between">
                         <span class="capitalize">{{ ucfirst($transactionType) }}</span>
                         <span class="font-bold">{{ $currency }}

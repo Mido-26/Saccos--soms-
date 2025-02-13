@@ -9,6 +9,7 @@ use App\Models\Settings;
 use App\Models\Transactions;
 use Illuminate\Http\Request;
 use App\Models\LoanRepayments;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreTransactionsRequest;
@@ -47,9 +48,11 @@ class TransactionsController extends Controller
     public function create()
     {
         if (!Auth::user()->can('viewAdminDashboard')) {
-            return redirect()->route('unauthorized');
+            abort(403);
         }
-        
+
+        // Retrieve only approved loans
+        $loans = Loans::where('status', 'approved')->get();
 
         // Retrieve all user IDs
         $ids = User::pluck('id')->toArray();
@@ -57,8 +60,9 @@ class TransactionsController extends Controller
         // Retrieve users with only first_name, last_name, and id, including their savings
         $users = User::select('id', 'first_name', 'last_name')->with('savings')->get();
 
-        return view('transactions.create', compact('users', 'ids'));
+        return view('transactions.create', compact('users', 'ids', 'loans'));
     }
+
 
     public function store(Request $request)
 {
@@ -71,15 +75,28 @@ class TransactionsController extends Controller
     }
 
     $setting = Settings::first();
-    // dd($setting);
+    
     // Retrieve the minimum saving amount from the settings.
     $minSavingAmount = $setting->min_savings;
-    // dd($minSavingAmount);
+    
     // Set up base validation rules.
+    $approvedLoans = Loans::where('status', 'approved')->pluck('id')->implode(',');
+
     $rules = [
         'user_id'        => 'required|exists:users,id',
         'type'           => 'required|string|in:savings_deposit,savings_withdrawal,loan_payment,loan_disbursement',
-        'amount'         => 'required|numeric|min:' .$minSavingAmount,
+        'loans'          => [
+            'nullable',
+            'exists:loans,id',
+            Rule::in(explode(',', $approvedLoans)), 
+            Rule::requiredIf(fn() => request('type') === 'loan_disbursement'),
+        ],
+        'amount'         => [
+            'nullable',
+            'numeric',
+            'min:'.$minSavingAmount,
+            Rule::requiredIf(fn() => request('type') !== 'loan_disbursement'),
+        ],
         'description'    => 'nullable|string',
         'payment_method' => 'required|string',
     ];
@@ -143,24 +160,28 @@ class TransactionsController extends Controller
         }
         // Process a loan disbursement.
         elseif ($validated['type'] === 'loan_disbursement') {
-            // Check if the user already has a loan record.
-            $loan = $user->loan()->first();
-            if ($loan) {
-                // Update existing loan.
-                $loan->disbursed_amount += $validated['amount'];
-                $loan->outstanding_amount += $validated['amount'];
-                $loan->status = 'disbursed';
-            } else {
-                // Create a new loan record.
-                $loan = Loans::create([
-                    'user_id'            => $user->id,
-                    'disbursed_amount'   => $validated['amount'],
-                    'outstanding_amount' => $validated['amount'],
-                    'status'             => 'disbursed',
-                ]);
+            $submittedLoan = Loans::where('id', $validated['loans'])->first();
+        
+            if (!$submittedLoan) {
+                return redirect()->back()->with('error', 'Selected loan does not exist.');
             }
-            $loan->save();
+        
+            // Check if loan status is 'approved'
+            if ($submittedLoan->status !== 'approved') {
+                return redirect()->back()->with('error', 'The loan is not approved for disbursement.');
+            }
+        
+            // Set the amount to the principal amount of the loan
+            $validated['amount'] = $submittedLoan->principal_amount;
+        
+            // Update the loan status to 'disbursed' and set disbursed_at timestamp
+            $submittedLoan->update([
+                'status'       => 'disbursed',
+                'disbursed_at' => now(),
+            ]);
         }
+        
+        
 
         // Optionally store extra loan-related fields in transaction metadata.
         $metadata = [];

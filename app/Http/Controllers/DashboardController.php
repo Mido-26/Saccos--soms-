@@ -14,6 +14,7 @@ class DashboardController extends Controller
 {
     public function index(){
         $user = Auth::user();
+        // abort('520');
 
         // check if user has pending loan or active loan 
         $loans = Loans::where('user_id', $user->id)->where('status', '!=','completed')->first() ?? null;
@@ -63,27 +64,8 @@ class DashboardController extends Controller
         }
         
         // return view('dashboard.dashboard', compact('user', 'role'));
-        return redirect()->back();
+        return redirect()->route('dashboard');
         // return view('dashboard.reset');
     }
-
-//     public function switchUser(Request $request)
-// {
-//     $user = Auth::user();
-
-//     // Ensure the user can switch roles based on the policy
-//     if ($request->role !== null) {
-//         if ($user->can('switchRole', [$user, $request->role])) {
-//             session(['role' => $request->role]);
-//             $role = session('role');
-//         } else {
-//             abort(403, 'Unauthorized to switch roles.');
-//         }
-//     } else {
-//         $role = session('role');
-//     }
-
-//     return view('dashboard.dashboard', compact('user', 'role'));
-// }
 
 }
