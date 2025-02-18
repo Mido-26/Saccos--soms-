@@ -21,9 +21,19 @@
                     placeholder="Select a transaction type" icon="fas fa-exchange-alt" :required="true" />
 
                 {{-- Loans To Be Disbursed (Initially Hidden) --}}
-                <div id="loanField" class="hidden">
-                    <x-form.select-field name="loans" label="Loans To Be Disbursed"  :options="$loans"
-                        placeholder="Select a Loan to be disbursed" icon="fas fa-wallet" :required="false" />
+                <div id="loanField" class="hidden space-y-1 mb-4">
+                    <label for="loans" class="block text-sm font-medium text-gray-700">Loans To Be Disbursed</label>
+                    {{-- <x-form.select-field name="" label=""  :options="$loans"
+                        placeholder="Select a Loan to be disbursed" icon="fas fa-wallet" :required="false" /> --}}
+                    <div class="relative"> 
+                        <i class="fas fa-wallet absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <select name="loans" class='w-full border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500'>
+                            <option value="" disabled>Select a Loan to be disbursed</option>
+                            @foreach ( $loans as $loan )
+                                <option value="{{$loan->id}}" >{{$loan->id}}  {{ $loan->user->first_name}} {{ $loan->user->last_name }},  Loan Amount {{ $loan->principal_amount }}</option>
+                            @endforeach
+                        </select>
+                    </div>    
                 </div>
     
                 {{-- Amount (Initially Visible) --}}

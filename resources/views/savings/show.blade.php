@@ -24,14 +24,14 @@
                 <div class="bg-white p-5 rounded-xl border-l-4 border-indigo-500 shadow-sm">
                     <div class="text-sm font-medium text-gray-500 mb-2">Current Balance</div>
                     <div class="text-2xl font-bold text-gray-800">
-                        {{ number_format($saving->account_balance, 2) }} {{$settings->currency}}
+                        {{ $settings->currency }} {{ number_format($saving->account_balance, 2) }} 
                     </div>
                 </div>
 
                 <div class="bg-white p-5 rounded-xl border-l-4 border-green-500 shadow-sm">
                     <div class="text-sm font-medium text-gray-500 mb-2">Total Interest Earned</div>
                     <div class="text-2xl font-bold text-gray-800">
-                        {{ number_format($saving->interest_earned, 2) }} {{$settings->currency}}
+                        {{ $settings->currency }}   {{ number_format($saving->interest_earned, 2) }} 
                     </div>
                 </div>
 

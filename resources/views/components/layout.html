@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'SACCOS(soms)')</title>
+    <!-- Favicon -->
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <script src="//unpkg.com/alpinejs" defer></script>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="{{ asset('assets/css/all.min.css') }}">
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous"></script>
+
+    <!-- Tailwind CSS -->
+    <!-- Styles / Scripts -->
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @else
+        <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    @endif
+
+    <!-- Nunito Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800 flex min-h-screen w-full">
+    @php
+    $role = session('role');
+@endphp
+<aside id="sidebar"
+    class="w-48 md:w-48 h-screen bg-white/95 backdrop-blur-lg shadow-xl sticky top-0 md:relative z-50 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out"
+    style="position: fixed !important; top: 0 !important;">
+    <div class="p-4 relative h-full flex flex-col">
+        <!-- Close Sidebar Button -->
+        <button class="md:hidden absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors" 
+                id="toggleSidebarButton"
+                aria-label="Close sidebar">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+
+        <!-- Company Logo -->
+        <div class="flex justify-center mb-6 pt-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-leaf text-white text-lg"></i>
+                </div>
+                <span class="text-2xl font-bold text-gray-800 tracking-tight">SOMS</span>
+            </div>
+        </div>
+
+        @auth
+            <!-- Navigation Links -->
+            <nav class="flex-1 space-y-1 overflow-y-auto pb-6">
+                <!-- Dashboard -->
+                <a href="/dashboard"
+                    class="flex items-center py-3 px-4 text-gray-600 hover:bg-green-50 rounded-lg transition-all 
+                    {{ request()->is('dashboard') ? 'border-l-[3px] border-green-600 bg-green-50 text-green-700 font-medium' : '' }}
+                    group hover:pl-5 hover:text-green-700">
+                    <i class="fa-solid fa-house text-lg w-6 mr-2 {{ request()->is('dashboard') ? 'text-green-600' : 'text-gray-400' }} group-hover:text-green-600"></i>
+                    Dashboard
+                </a>
+
+                <!-- Members Dropdown -->
+                @if ($role == 'admin' || $role == 'staff' || $role == 'superadmin')
+                <div class="space-y-1">
+                    <button id="membersButton"
+                            class="w-full flex items-center justify-between py-3 px-4 text-gray-600 hover:bg-green-50 rounded-lg transition-all
+                            {{ request()->is('users*') ? 'border-l-[3px] border-green-600 bg-green-50 text-green-700 font-medium' : '' }}
+                            group hover:pl-5 hover:text-green-700"
+                            aria-expanded="{{ request()->is('users*') ? 'true' : 'false' }}">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-users text-lg w-6 mr-2 {{ request()->is('users*') ? 'text-green-600' : 'text-gray-400' }} group-hover:text-green-600"></i>
+                            Members
+                        </div>
+                        <i id="membersIcon" 
+                           class="fa-solid fa-chevron-right text-xs transition-transform duration-300 
+                           {{ request()->is('users*') ? 'rotate-90' : '' }}"></i>
+                    </button>
+                    <div id="membersDropdown" 
+                         class="pl-8 space-y-1 overflow-hidden transition-all duration-300 
+                         {{ request()->is('users*') ? 'max-h-96' : 'max-h-0' }}">
+                        <a href="{{ route('users.index') }}"
+                           class="flex items-center py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition
+                           {{ request()->is('users') ? 'text-green-600 font-medium' : '' }}">
+                            <i class="fa-solid fa-circle-small text-xs mr-2 opacity-60"></i>
+                            All Members
+                        </a>
+                        <a href="{{ route('users.create') }}"
+                           class="flex items-center py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition
+                           {{ request()->is('users/create') ? 'text-green-600 font-medium' : '' }}">
+                            <i class="fa-solid fa-circle-small text-xs mr-2 opacity-60"></i>
+                            Add Member
+                        </a>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Savings -->
+                <a href="{{ route('savings.index') }}"
+                    class="flex items-center py-3 px-4 text-gray-600 hover:bg-green-50 rounded-lg transition-all 
+                    {{ request()->is('savings*') ? 'border-l-[3px] border-green-600 bg-green-50 text-green-700 font-medium' : '' }}
+                    group hover:pl-5 hover:text-green-700">
+                    <i class="fa-solid fa-piggy-bank text-lg w-6 mr-2 {{ request()->is('savings*') ? 'text-green-600' : 'text-gray-400' }} group-hover:text-green-600"></i>
+                    Savings
+                </a>
+
+                <!-- Loans Dropdown -->
+                <div class="space-y-1">
+                    <button id="loansButton"
+                            class="w-full flex items-center justify-between py-3 px-4 text-gray-600 hover:bg-green-50 rounded-lg transition-all
+                            {{ request()->is('loans*') ? 'border-l-[3px] border-green-600 bg-green-50 text-green-700 font-medium' : '' }}
+                            group hover:pl-5 hover:text-green-700"
+                            aria-expanded="{{ request()->is('loans*') ? 'true' : 'false' }}">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-hand-holding-usd text-lg w-6 mr-2 {{ request()->is('loans*') ? 'text-green-600' : 'text-gray-400' }} group-hover:text-green-600"></i>
+                            Loans
+                        </div>
+                        <i id="loansIcon" 
+                           class="fa-solid fa-chevron-right text-xs transition-transform duration-300 
+                           {{ request()->is('loans*') ? 'rotate-90' : '' }}"></i>
+                    </button>
+                    <div id="loansDropdown" 
+                         class="pl-8 space-y-1 overflow-hidden transition-all duration-300 
+                         {{ request()->is('loans*') ? 'max-h-96' : 'max-h-0' }}">
+                        @foreach([
+                            ['route' => 'loans.index', 'params' => [], 'label' => 'All Loans'],
+                            ['route' => 'loans.status', 'params' => ['pending'], 'label' => 'Pending Loans'],
+                            ['route' => 'loans.status', 'params' => ['approved'], 'label' => 'Approved Loans'],
+                            ['route' => 'loans.status', 'params' => ['rejected'], 'label' => 'Rejected Loans'],
+                            ['route' => 'loans.status', 'params' => ['disbursed'], 'label' => 'Disbursed Loans'],
+                            ['route' => 'loans.status', 'params' => ['completed'], 'label' => 'Completed Loans'],
+                            ['route' => 'loans.status', 'params' => ['overdue'], 'label' => 'Overdue Loans']
+                        ] as $link)
+                        <a href="{{ route($link['route'], $link['params'] ?? []) }}"
+                           class="flex items-center py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition
+                           {{ request()->is('loans/' . (($link['params'] ?? [])[0] ?? '')) ? 'text-green-600 font-medium' : '' }}">
+                            <i class="fa-solid fa-circle-small text-xs mr-2 opacity-60"></i>
+                            {{ $link['label'] }}
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Transactions -->
+                <a href="{{ route('transactions.index') }}"
+                    class="flex items-center py-3 px-4 text-gray-600 hover:bg-green-50 rounded-lg transition-all 
+                    {{ request()->is('transactions*') ? 'border-l-[3px] border-green-600 bg-green-50 text-green-700 font-medium' : '' }}
+                    group hover:pl-5 hover:text-green-700">
+                    <i class="fa-solid fa-exchange-alt text-lg w-6 mr-2 {{ request()->is('transactions*') ? 'text-green-600' : 'text-gray-400' }} group-hover:text-green-600"></i>
+                    Transactions
+                </a>
+
+                <!-- Reports Dropdown -->
+                <div class="space-y-1">
+                    <button id="reportsButton"
+                            class="w-full flex items-center justify-between py-3 px-4 text-gray-600 hover:bg-green-50 rounded-lg transition-all
+                            {{ request()->is('reports*') ? 'border-l-[3px] border-green-600 bg-green-50 text-green-700 font-medium' : '' }}
+                            group hover:pl-5 hover:text-green-700"
+                            aria-expanded="{{ request()->is('reports*') ? 'true' : 'false' }}">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-chart-line text-lg w-6 mr-2 {{ request()->is('reports*') ? 'text-green-600' : 'text-gray-400' }} group-hover:text-green-600"></i>
+                            Reports
+                        </div>
+                        <i id="reportsIcon" 
+                           class="fa-solid fa-chevron-right text-xs transition-transform duration-300 
+                           {{ request()->is('reports*') ? 'rotate-90' : '' }}"></i>
+                    </button>
+                    <div id="reportsDropdown" 
+                         class="pl-8 space-y-1 overflow-hidden transition-all duration-300 
+                         {{ request()->is('reports*') ? 'max-h-96' : 'max-h-0' }}">
+                        @foreach([
+                            ['route' => 'reports.index', 'label' => 'Monthly Reports', 'icon' => 'calendar-alt'],
+                            ['route' => 'reports.index', 'label' => 'Annual Reports', 'icon' => 'calendar-check'],
+                            ['route' => 'reports.index', 'label' => 'Custom Reports', 'icon' => 'cogs']
+                        ] as $link)
+                        <a href="{{ route($link['route']) }}"
+                           class="flex items-center py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition">
+                            <i class="fa-solid fa-{{ $link['icon'] }} text-xs mr-2 opacity-60"></i>
+                            {{ $link['label'] }}
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <a href="{{ route('settings.index') }}"
+                    class="flex items-center py-3 px-4 text-gray-600 hover:bg-green-50 rounded-lg transition-all 
+                    {{ request()->is('settings*') ? 'border-l-[3px] border-green-600 bg-green-50 text-green-700 font-medium' : '' }}
+                    group hover:pl-5 hover:text-green-700">
+                    <i class="fa-solid fa-cog text-lg w-6 mr-2 {{ request()->is('settings*') ? 'text-green-600' : 'text-gray-400' }} group-hover:text-green-600"></i>
+                    Settings
+                </a>
+            </nav>
+        @endauth
+    </div>
+</aside>
+
+<script>
+    $(document).ready(function() {
+        // Enhanced dropdown handling
+        $('[id$="Button"]').on('click', function() {
+            const dropdownId = $(this).attr('id').replace('Button', 'Dropdown');
+            const iconId = $(this).attr('id').replace('Button', 'Icon');
+            
+            $(`#${dropdownId}`).toggleClass('max-h-0 max-h-96');
+            $(`#${iconId}`).toggleClass('rotate-90');
+            $(this).attr('aria-expanded', $(this).attr('aria-expanded') === 'true' ? 'false' : 'true');
+            
+            // Close other dropdowns
+            $(`[id$="Dropdown"]:not(#${dropdownId})`).addClass('max-h-0').removeClass('max-h-96');
+            $(`[id$="Icon"]:not(#${iconId})`).removeClass('rotate-90');
+            $(`[id$="Button"]:not(#${this.id})`).attr('aria-expanded', 'false');
+        });
+
+        // Improved sidebar toggle
+        $('#toggleSidebarButton').on('click', function() {
+            $('#sidebar').toggleClass('-translate-x-full');
+            $('[aria-expanded="true"]').attr('aria-expanded', 'false');
+            $('.dropdown-content').addClass('max-h-0').removeClass('max-h-96');
+            $('.dropdown-icon').removeClass('rotate-90');
+        });
+
+        // Better hover transitions
+        $('nav a, nav button').hover(
+            function() { $(this).addClass('translate-x-1'); },
+            function() { $(this).removeClass('translate-x-1'); }
+        );
+    });
+</script>
+
+<!-- Main Content Area -->
+<div class="flex-grow md:ml-48 sm:ml-0 w-full flex flex-col ">
+    <!-- Sticky Navbar -->
+    <header class="sticky top-0 bg-white shadow p-4 flex justify-between items-center z-10">
+        <!-- Toggle Sidebar Button (Small Screens) -->
+        <div class="flex items-center gap-5">
+            <button class="md:hidden text-gray-700" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <h2 class="text-2xl font-semibold">@yield('name', 'Saccos')</h2>
+        </div>
+        @auth
+
+            <div class="flex items-center gap-4">
+
+                @if (Auth::check() && (Auth::user()->role == 'staff' || Auth::user()->role == 'admin' || Auth::user()->role == 'superadmin'))
+                    <form id="roleForm" action="{{ route('dashboard') }}" method="POST">
+                        @csrf <!-- Protects the form from cross-site request forgery attacks -->
+
+                        @php
+                            if (!isset($role)) {
+                                $role = session('role');
+                            }
+                        @endphp
+                        <div class="hidden sm:flex items-center">
+                            @php
+                                $isAdmin = $role == 'admin';
+                            @endphp
+
+                            <!-- Hidden Input to Pass the Role -->
+                            <input type="hidden" name="role" value="{{ $isAdmin ? 'user' : 'admin' }}">
+                            <span class="text-sm text-gray-700 mr-2">User</span>
+                            <!-- Toggle Switch -->
+                            <label for="roleToggle" class="relative inline-flex items-center cursor-pointer">
+
+                                <input type="checkbox" id="roleToggle" {{ $isAdmin ? 'checked' : '' }} class="sr-only">
+                                <!-- Screen reader only, hidden from view -->
+                                <!-- Outer Switch Background -->
+                                <div
+                                    class="w-12 h-6 bg-gray-300 rounded-full shadow-inner transition-colors duration-300  {{ $isAdmin ? 'bg-gray-700' : 'bg-green-500' }}">
+                                </div>
+
+
+                                <!-- Toggle Dot -->
+                                <div
+                                    class="dot absolute top-0 left-0 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 {{ $isAdmin ? 'translate-x-6' : '' }}">
+                                </div>
+
+
+                            </label>
+                            <span class="text-sm text-gray-700 ml-2">Admin</span>
+                        </div>
+                    </form>
+                @endif
+
+                
+
+                {{-- @push('scripts') --}}
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                <script>
+                    $(document).ready(function() {
+                        // Listen for changes on the toggle switch
+                        $('#roleToggle').change(function() {
+                            // Toggle the hidden role input value based on switch state
+                            let role = $(this).is(':checked') ? 'admin' : 'user';
+                            $("input[name='role']").val(role);
+
+                            // Automatically submit the form when toggled
+                            $("#roleForm").submit();
+                        });
+                    });
+                </script>
+                {{-- @endpush --}}
+
+
+                <!-- Notification Icon with Dropdown -->
+                <div class="relative">
+                    <!-- Notification Button -->
+                    <button id="notificationButton" class="relative text-gray-600 hover:text-gray-900 focus:outline-none"
+                        onclick="toggleNotifications()">
+                        <i class="fa-solid fa-bell text-xl"></i>
+                        <span id="notificationBadge"
+                            class="absolute top-0 -right-2 w-4  text-xs  text-white bg-red-500 rounded-full hidden">
+                        </span>
+                    </button>
+
+                    <!-- Notification Dropdown -->
+                    <div id="notificationDropdown"
+                        class="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg hidden transform transition-all duration-200 ease-in-out">
+                        <!-- Dropdown Header -->
+                        <div
+                            class="p-4 font-semibold text-gray-700 border-b border-gray-200 flex items-center justify-between">
+                            <span>Notifications</span>
+                            <a id="markAllButton" href="{{ route('notifications.markAllAsRead') }}"
+                                class="text-sm text-blue-500 hover:text-blue-700 focus:outline-none">
+                                <i class="fa-solid fa-check-double mr-1"></i>Mark All as Read
+                            </a>
+                        </div>
+
+                        <!-- Notification List -->
+                        <ul id="notificationList" class="max-h-60 overflow-y-auto">
+                            <!-- Notifications will be dynamically loaded here -->
+                        </ul>
+
+                        <!-- Dropdown Footer -->
+                        <div class="p-2 text-center text-sm text-gray-500 border-t border-gray-200">
+                            <a href="{{ route('notifications.index') }}" class="text-blue-500 hover:text-blue-700">View All
+                                Notifications</a>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Profile Dropdown -->
+                <div class="relative">
+                    <button id="dropdownButton" class="flex items-center focus:outline-none" onclick="toggleDropdown()">
+                        {{-- <x-profile-initials initials="{{ $initials }}"  /> --}}
+                        @include('components.profile_initials', ['initials' => $initials])
+                        {{-- <img src="{{ asset('assets/logo/logo2.png ') }}" alt="Profile"
+                            class="w-8 h-8 bg-cover rounded-full"> --}}
+                        <span class="hidden md:block ml-2 capitalize">Hi 👋 {{ Auth::user()->first_name ?? 'Guest' }}</span>
+                        <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div id="dropdownMenu" class="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg hidden">
+                        <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-200">
+                            <i class="fa-solid fa-user"></i> Profile
+                        </a>
+
+                        <!-- Logout Form -->
+                        <form action="{{ route('logout') }}" method="POST" class="block">
+                            @csrf
+                            <button type="submit" class="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200">
+                                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+        @endauth
+    </header>
+    <main class="p-4 bg-gray-100 h-full flex-1">
+        @yield('content')
+    </main>
+
+    <!-- Toast Container -->
+<div id="toastContainer" class="fixed top-10 right-0 mb-4 mr-4"></div>
+<!-- Loader Div -->
+<div id="loader" class="hidden fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-md py-4 px-6 flex flex-col items-center justify-center">
+        <img src="{{ asset('assets/loaders/Fidget-spinner.gif') }}" alt="Loading..." class="w-10 h-10">
+    </div>
+</div>
+<!-- Footer -->
+<footer class="bg-gray-800 text-white py-4 mt-auto">
+    <div class="container flex flex-col sm:items-center justify-center items-center mx-auto text-center">
+        <p>&copy; 2024 TECHQUORUM. All rights reserved.</p>
+        <div class="">
+            <a href="#" class="text-gray-400 hover:text-white mx-2">Privacy Policy</a>
+            <a href="#" class="text-gray-400 hover:text-white mx-2">Terms of Service</a>
+        </div>
+    </div>
+</footer>
+</div>
+
+<script>
+    // Function to toggle sidebar visibility on smaller screens
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleIcon = document.getElementById('toggleSidebarIcon');
+        sidebar.classList.toggle('-translate-x-full');
+        // toggleIcon.classList.toggle('fa-arrow-left');
+        // toggleIcon.classList.toggle('fa-arrow-right');
+    }
+
+    // Function to toggle the profile dropdown menu visibility
+    function toggleDropdown() {
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        dropdownMenu.classList.toggle('hidden');
+    }
+
+    // Function to toggle the notification dropdown visibility
+    function toggleNotifications() {
+        const notificationDropdown = document.getElementById('notificationDropdown');
+        notificationDropdown.classList.toggle('hidden');
+    }
+</script>
+@auth
+    <script>
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', function(e) {
+            const dropdownButton = document.getElementById('dropdownButton');
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            const notificationButton = document.getElementById('notificationButton');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+
+
+            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+
+            if (!notificationButton.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.classList.add('hidden');
+            }
+        });
+    </script>
+@endauth
+@auth
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const showMoreButtons = document.querySelectorAll('.show-more');
+
+            showMoreButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const fullDescription = this.getAttribute('data-full-description');
+                    const descriptionParagraph = this.previousElementSibling;
+                    const isShowingMore = this.textContent === 'Show Less';
+
+                    if (isShowingMore) {
+                        // Show truncated text
+                        descriptionParagraph.textContent = fullDescription.length > 90 ?
+                            fullDescription.slice(0, 90) + '...' : fullDescription;
+                        this.textContent = 'Show More';
+                    } else {
+                        // Show full text
+                        descriptionParagraph.textContent = fullDescription;
+                        this.textContent = 'Show Less';
+                    }
+                });
+            });
+        });
+    </script>
+@endauth
+</body>
+
+</html>

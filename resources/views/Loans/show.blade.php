@@ -190,8 +190,17 @@
                             <p class="text-gray-600">
                                 <i class="fas fa-check-double mr-2"></i>
                                 Your loan has been disbursed.
-                                <a href="{{ route('loans.index', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
+                                <a href="{{ route('loans.installments', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
                                     View your installments
+                                </a>
+                            </p>
+
+                        @elseif($loan->status == 'completed')
+                            <p class="text-green-600">
+                                <i class="fas fa-check-double mr-2"></i>
+                                Your loan has been Paid.
+                                <a href="{{ route('loans.installments', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
+                                    View your loan payments installments
                                 </a>
                             </p>
                         @endif
@@ -232,19 +241,26 @@
                                 </button>
                             </form>
                         @endif
-                        {{-- @if ($loan->status === 'pending' || $loan->status === 'approved')
-                            <form
-                                action="{{ route('loans.updateStatus', ['loan' => $loan->id, 'action' => 'disbursed']) }}"
-                                method="POST">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit"
-                                    class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                    <i class="fas fa-hand-holding-usd mr-2"></i>
-                                    Disburse Loan
-                                </button>
-                            </form>
-                        @endif --}}
+
+                        @if($loan->status == 'disbursed')
+                            <p class="text-gray-600">
+                                <i class="fas fa-check-double mr-2"></i>
+                                Loan has been disbursed.
+                                <a href="{{ route('loans.installments', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
+                                    View payments installments
+                                </a>
+                            </p>
+
+                        @elseif($loan->status == 'completed')
+                            <p class="text-green-600">
+                                <i class="fas fa-check-double mr-2"></i>
+                                loan has been Paid.
+                                <a href="{{ route('loans.installments', $loan->id) }}" class="text-blue-500 hover:underline ml-2">
+                                    View loan payments installments
+                                </a>
+                            </p>
+                        @endif
+                        
 
                     </div>
                 </div>

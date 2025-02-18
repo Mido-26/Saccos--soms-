@@ -24,8 +24,12 @@ class TransactionsController extends Controller
 {
     $role = session('role');
     $query = Transactions::query();
+    $user = $request->route('user');
     if ($role == 'admin' || $role == 'staff'){
-        
+        if(!empty($user)){
+            $query->where('user_id', '=', $user);
+        }
+
     }else{
         $id = Auth::user()->id;
         $query->where('user_id', '=', $id);
@@ -41,7 +45,7 @@ class TransactionsController extends Controller
             $total = $total + $transaction->amount;
         }
     // Pass the request inputs to the view to retain selected filters
-    return view('transactions.index', compact('transactions', 'total'))->withInput($request->all());
+    return view('Transactions.index', compact('transactions', 'total'))->withInput($request->all());
 }
 
 
@@ -207,7 +211,7 @@ class TransactionsController extends Controller
 
         DB::commit();
 
-        return redirect()->route('transactions.index')
+        return redirect()->route('Transactions.index')
             ->with('success', 'Transaction processed successfully.');
     } catch (\Exception $e) {
         DB::rollBack();
@@ -300,7 +304,7 @@ class TransactionsController extends Controller
         DB::commit();
 
         // Redirect to transactions index with a success message
-        return redirect()->route('transactions.index')->with('success', 'Transaction updated successfully and balance adjusted.');
+        return redirect()->route('Transactions.index')->with('success', 'Transaction updated successfully and balance adjusted.');
     } catch (\Exception $e) {
         // Rollback in case of any error
         DB::rollBack();

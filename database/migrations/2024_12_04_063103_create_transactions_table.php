@@ -24,12 +24,8 @@ return new class extends Migration
             $table->json('metadata')->nullable(); // Additional information about the transaction in JSON format
             $table->timestamps(); // Timestamps for creation and last update
         
-        
-
             // $table->text('failed_reason')->nullable(); // Reason for failure if the transaction fails
-            // $table->ipAddress('ip_address')->nullable(); // Optional for tracking the IP address of the initiator
-            
-            // $table->enum('status', ['pending', 'completed', 'failed', 'cancelled'])->default('pending'); // Transaction status
+            // $table->ipAddress('ip_address')->nullable(); // Optional for tracking the IP address of the initiator           
             // $table->foreignId('account_id')->nullable()->constrained('accounts')->onDelete('set null'); // SACCO account reference
             // $table->foreignId('loan_id')->nullable()->constrained('loans')->onDelete('set null'); // Reference for loan-related transactions
         });

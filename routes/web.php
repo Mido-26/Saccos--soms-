@@ -8,12 +8,14 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\LoansController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SavingsController;
 use App\Http\Middleware\CheckAccountStatus;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TransactionsController;
+use App\Http\Controllers\LoanRepaymentsController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 
@@ -70,7 +72,14 @@ Route::middleware(CheckConfigs::class)->group( function(){
         Route::get('/notifications/clear-all', [NotificationController::class, 'destroy'])->name('notifications.clearAll');
 
         // Loans routes
-        
+        // Payment route
+        Route::post('/loan-repayments/{repayment}/pay', [LoanRepaymentsController::class, 'markAsPaid'])
+        ->name('loan-repayments.pay');
+
+        // Export route
+        Route::get('/loans/{loan}/installments/export/{type}', [LoanRepaymentsController::class, 'exportInstallments'])
+        ->name('loans.installments.export');
+        Route::get('/loans/{loan}/installments', [LoanRepaymentsController::class, 'show'])->name('loans.installments');
         Route::get('/loans/status/{status}', [LoansController::class, 'index'])->name('loans.status');
         Route::resource('loans', LoansController::class);
         Route::get('/loans/user/{user}', [LoansController::class, 'index'])->name('loans.user');
@@ -120,6 +129,38 @@ Route::middleware(CheckConfigs::class)->group( function(){
     // Handle password reset submission
     Route::post('reset-password', [LoginController::class, 'reset'])->name('password.update');
 
+    // reports Routes
+    Route::get('/reports/index', [ReportsController::class, 'index'])->name('reports.index');
+    // Savings Report
+    Route::get('reports/savings', [ReportsController::class, 'index'])->name('reports.savings');
+    Route::get('reports/savings', [ReportsController::class, 'generateSavings'])->name('reports.savings.generate');
+    Route::get('reports/savings/download', [ReportsController::class, 'downloadSavings'])->name('reports.savings.download');
+
+    // Loans Report
+    Route::get('reports/loans', [ReportsController::class, 'generateLoans'])->name('reports.loans.generate');
+    Route::get('reports/loans/download', [ReportsController::class, 'downloadLoans'])->name('reports.loans.download');
+
+    // Transactions Report
+    Route::get('reports/transactions', [ReportsController::class, 'generateTransactions'])->name('reports.transactions.generate');
+    Route::get('reports/transactions/download', [ReportsController::class, 'downloadTransactions'])->name('reports.transactions.download');
+
+    // Members Report
+    Route::get('reports/members', [ReportsController::class, 'generateMembers'])->name('reports.members.generate');
+    Route::get('reports/members/download', [ReportsController::class, 'downloadMembers'])->name('reports.members.download');
+
+    // Penalties Report
+    Route::get('reports/penalties', [ReportsController::class, 'generatePenalties'])->name('reports.penalties.generate');
+    Route::get('reports/penalties/download', [ReportsController::class, 'downloadPenalties'])->name('reports.penalties.download');
+
+    // Dividends Report
+    Route::get('reports/dividends', [ReportsController::class, 'generateDividends'])->name('reports.dividends.generate');
+    Route::get('reports/dividends/download', [ReportsController::class, 'downloadDividends'])->name('reports.dividends.download');
+
+
+    // settings route
+    Route::post('/settings/{settings}', [SettingsController::class, 'update'])->name('settings.update');
+    Route::get('/settings/', [SettingsController::class, 'index'])->name('settings.index');
+    Route::get('/settings/{settings}', [SettingsController::class, 'edit'])->name('settings.edit');
 });
 
 Route::post('/settings/store', [SettingsController::class, 'store'])->name('settings.store');

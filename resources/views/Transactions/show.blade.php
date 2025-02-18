@@ -1,96 +1,149 @@
 <x-layout>
-@section('title', 'Transaction Overview')
-@section('name', 'Transaction Overview')
-
-@section('content')
-    {{-- @include('components.back') --}}
-
-    <div class="bg-white shadow-md rounded-lg mb-6 p-6">
-        <!-- Header Section -->
-        <div class="border-b pb-4 mb-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-2xl font-bold text-gray-800">
-                    Transaction Information
-                    <span class="text-gray-500 text-sm">(ID: {{ $transaction->id }})</span>
-                </h3>
-                {{-- <a href="{{ route('transactions.edit', $transaction->id) }}" 
-                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-full text-sm flex items-center shadow"
-                   title="Edit Transaction">
-                    <i class="fas fa-edit mr-2"></i>Edit
-                </a> --}}
-                <x-nav-link href="{{ route('transactions.edit', $transaction->id) }}" color="yellow" icon=" fas fa-edit">
-                    Edit
-                </x-nav-link>
+    @section('title', 'Transaction Overview')
+    @section('name', 'Transaction Overview')
+    
+    @section('content')
+        {{-- <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"> --}}
+            <!-- Back Button & Header Container -->
+            {{-- <div class="mb-6">
+                <a href="{{ url()->previous() }}" class="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors">
+                    <i class="fas fa-chevron-left mr-2"></i> Back to Transactions
+                </a>
+            </div> --}}
+    
+            <!-- Main Card -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl">
+                <!-- Card Header -->
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">
+                                Transaction Details
+                                <span class="text-gray-500 text-sm font-medium block sm:inline mt-1 sm:mt-0">
+                                    (ID: {{ $transaction->id }})
+                                </span>
+                            </h2>
+                        </div>
+                        <x-nav-link 
+                            href="{{ route('transactions.edit', $transaction->id) }}" 
+                            color="indigo" 
+                            icon="fas fa-pencil-alt"
+                            class="shadow-sm"
+                        >
+                            Edit Transaction
+                        </x-nav-link>
+                    </div>
+                </div>
+    
+                <!-- Card Body -->
+                <div class="p-6">
+                    <!-- Grid Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Transaction Overview -->
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-user-circle text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Account Holder</p>
+                                    <p class="font-medium text-gray-900">
+                                        {{ $transaction->user->first_name }} {{ $transaction->user->last_name }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-coins text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Amount</p>
+                                    <p class="font-semibold text-green-700">
+                                        {{ number_format($transaction->amount, 2) }} {{ $settings->currency }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-exchange-alt text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Transaction Type</p>
+                                    <x-status-badge :status="$transaction->type" class="text-sm" />
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- Payment & Timing -->
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-credit-card text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Payment Method</p>
+                                    <p class="font-medium text-gray-900">
+                                        {{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}
+                                        <span class="ml-2 text-gray-400 text-sm">
+                                            <i class="fab fa-cc-{{ strtolower($transaction->payment_method) }}"></i>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-check text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Transaction Date</p>
+                                    <p class="font-medium text-gray-900">
+                                        {{ \Carbon\Carbon::parse($transaction->created_at)->format('d M Y, h:i A') }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Status</p>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-spinner fa-pulse mr-1"></i>
+                                        {{ ucfirst('N/A') }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- Additional Details -->
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Completion Date</p>
+                                    <p class="font-medium text-gray-900">
+                                        {{ $transaction->completed_at ? \Carbon\Carbon::parse($transaction->completed_at)->format('d M Y, h:i A') : 'Pending' }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-user-shield text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Initiator</p>
+                                    <p class="font-medium text-gray-900">
+                                        {{ $transaction->initiator->first_name ?? 'System' }} {{ $transaction->initiator->last_name ?? '' }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-hashtag text-gray-400 w-6 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-500">Reference ID</p>
+                                    <p class="font-mono font-medium text-indigo-600 break-all">
+                                        {{ $transaction->transaction_reference }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Description Section -->
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h4 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Transaction Description</h4>
+                        <p class="text-gray-700 leading-relaxed">
+                            {{ $transaction->description ?? 'No description available for this transaction.' }}
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-    
-        <!-- Content Section -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Transaction Overview -->
-            <div class="space-y-3">
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Account Holder:</span>
-                    {{ $transaction->user->first_name }} {{ $transaction->user->last_name }}
-                </p>
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Amount:</span>
-                    <span class="text-green-600 font-semibold">
-                        {{ number_format($transaction->amount, 2) }} {{$settings->currency}}
-                    </span>
-                </p>
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Transaction Type:</span>
-                    {{-- <span class="{{ $transaction->type === 'deposit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }} px-3 py-1 rounded-full text-xs font-semibold">
-                        {{ ucfirst($transaction->type) }}
-                    </span> --}}
-                    <x-status-badge :status="$transaction->type" />
-                </p>
-            </div>
-    
-            <!-- Payment & Status Information -->
-            <div class="space-y-3">
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Payment Method:</span>
-                    {{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}
-                </p>
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Status:</span>
-                    <span class="{{ 'completed' === 'completed' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600' }} px-3 py-1 rounded-full text-xs font-semibold">
-                        {{ ucfirst('N/A') }}
-                    </span>
-                </p>
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Transaction Date:</span>
-                    {{ \Carbon\Carbon::parse($transaction->created_at)->format('d M Y, h:i:s A') }}
-                </p>
-            </div>
-    
-            <!-- Completion & Initiator Info -->
-            <div class="space-y-3">
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Completed At:</span>
-                    {{ $transaction->completed_at ? \Carbon\Carbon::parse($transaction->completed_at)->format('d M Y, h:i:s A') : 'Pending' }}
-                </p>
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Initiator:</span>
-                    {{ $transaction->initiator->first_name ?? 'N/A' }} {{ $transaction->initiator->last_name ?? '' }}
-                </p>
-                <p class="flex items-center">
-                    <span class="font-semibold text-gray-800 w-40">Transaction Reference:</span>
-                    {{ $transaction->transaction_reference }}
-                </p>
-            </div>
-        </div>
-    
-        <!-- Description Section -->
-        <div class="mt-6 border-t pt-4">
-            <h4 class="text-lg font-semibold text-gray-800 mb-2">Transaction Description</h4>
-            <p class="text-gray-700 text-sm">
-                {{ $transaction->description ?? 'No description provided.' }}
-            </p>
-        </div>
-    </div>
-    
-    
-@endsection
-</x-layout>
+        {{-- </div> --}}
+    @endsection
+    </x-layout>

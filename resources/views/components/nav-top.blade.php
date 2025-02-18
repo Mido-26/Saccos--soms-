@@ -81,7 +81,8 @@
                         onclick="toggleNotifications()">
                         <i class="fa-solid fa-bell text-xl"></i>
                         <span id="notificationBadge"
-                            class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
+                            class="absolute top-0 -right-2 w-4  text-xs  text-white bg-red-500 rounded-full hidden">
+                        </span>
                     </button>
 
                     <!-- Notification Dropdown -->
@@ -98,7 +99,7 @@
                         </div>
 
                         <!-- Notification List -->
-                        <ul id="#notificationList" class="max-h-60 overflow-y-auto">
+                        <ul id="notificationList" class="max-h-60 overflow-y-auto">
                             <!-- Notifications will be dynamically loaded here -->
                         </ul>
 

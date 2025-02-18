@@ -13,6 +13,11 @@ class LoanRepayments extends Model
     // Define the fillable columns
     protected $guarded = [];
 
+
+    protected $casts = [
+        'paid_at' => 'datetime',
+        'due_date' => 'datetime',
+    ];
     // Define the relationship  
     public function loan()
     {

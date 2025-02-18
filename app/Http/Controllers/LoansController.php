@@ -135,11 +135,15 @@ class LoansController extends Controller
         $validated = $request->validate($rules);
 
         // check if the user has an active loan if yes return an error
-        $activeLoan = Loans::where('user_id', $user->id)->where('status', 'approved')
-                                                                            ->orwhere('status', 'disbursed')
-                                                                            ->orwhere('status', 'pending')
-                                                                            ->first();
+        $activeLoan = Loans::where('user_id', $user->id)
+                   ->where(function($query) {
+                       $query->where('status', 'approved')
+                             ->orWhere('status', 'disbursed')
+                             ->orWhere('status', 'pending');
+                   })
+                   ->first();
 
+        // dd($activeLoan, $user);
         if ($activeLoan) {
             return redirect()->route('loans.index')->with('error', 'You have either an active loan or a pending loan application!');
         }                                                                    

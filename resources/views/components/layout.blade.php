@@ -6,3 +6,4 @@
     @yield('content')
 </main>
 @include('components.footer')
+

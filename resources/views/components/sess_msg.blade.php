@@ -20,7 +20,7 @@ $alerts = [
 {{-- Loop through success and error alerts --}}
 @foreach ($alerts as $type => $alert)
     @if (!empty($alert['message']))
-        <div class="{{ $alert['bg'] }} {{ $alert['border'] }} {{ $alert['text'] }} px-4 py-2 rounded relative my-2 transition duration-200 ease-in-out" role="alert">
+        <div class="{{ $alert['bg'] }} border {{ $alert['border'] }} {{ $alert['text'] }} px-4 py-2 rounded relative my-2 transition duration-200 ease-in-out" role="alert">
             <button type="button" class="absolute top-0 right-0 mr-2 {{ $alert['icon'] }}" aria-label="Close alert" onclick="this.parentElement.style.display='none';">
                 <i class="fa fa-times font-extrabold text-xl mx-2"></i>
             </button>
@@ -42,3 +42,12 @@ $alerts = [
         </ul>
     </div>
 @endif
+
+{{-- @if (session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded relative my-2 transition duration-200 ease-in-out" role="alert">
+        <button type="button" class="absolute top-0 right-0 mr-2 text-red-700 hover:text-red-900" aria-label="Close alert" onclick="this.parentElement.style.display='none';">
+            <i class="fa fa-times font-extrabold text-xl mx-2"></i>
+        </button>
+        {{ session('error') }}
+    </div>    
+@endif --}}
