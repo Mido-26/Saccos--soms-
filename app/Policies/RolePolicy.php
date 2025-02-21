@@ -29,7 +29,6 @@ class RolePolicy
     {
         $user = Auth::user();
         dd($user);
-        // Only allow role switching for admins or managers
         return in_array($user->role, ['admin', 'staff']);
     }
 }

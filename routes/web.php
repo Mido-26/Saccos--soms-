@@ -39,6 +39,15 @@ Route::middleware(CheckConfigs::class)->group( function(){
 
 
     Route::middleware(['auth','verified', CheckAccountStatus::class])->group(function () {
+        // Reports Routes
+        Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+        Route::get('/reports/savings', [ReportsController::class, 'savings'])->name('reports.savings');
+        Route::get('/reports/loans', [ReportsController::class, 'loans'])->name('reports.loans');
+        Route::get('/reports/members', [ReportsController::class, 'members'])->name('reports.members');
+        Route::get('/reports/transactions', [ReportsController::class, 'transactions'])->name('reports.transactions');
+        Route::post('/reports/savings/', [ReportsController::class, 'generate'])->name('reports.generate');
+        Route::get('/reports/download', [ReportsController::class, 'download'])->name('reports.download');
+
         // logout route
         Route::get('logout', [LoginController::class, 'logout'])->name('logout');
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
@@ -128,34 +137,6 @@ Route::middleware(CheckConfigs::class)->group( function(){
     Route::get('reset-password/{token}', [LoginController::class, 'showResetForm'])->name('password.reset');
     // Handle password reset submission
     Route::post('reset-password', [LoginController::class, 'reset'])->name('password.update');
-
-    // reports Routes
-    Route::get('/reports/index', [ReportsController::class, 'index'])->name('reports.index');
-    // Savings Report
-    Route::get('reports/savings', [ReportsController::class, 'index'])->name('reports.savings');
-    Route::get('reports/savings', [ReportsController::class, 'generateSavings'])->name('reports.savings.generate');
-    Route::get('reports/savings/download', [ReportsController::class, 'downloadSavings'])->name('reports.savings.download');
-
-    // Loans Report
-    Route::get('reports/loans', [ReportsController::class, 'generateLoans'])->name('reports.loans.generate');
-    Route::get('reports/loans/download', [ReportsController::class, 'downloadLoans'])->name('reports.loans.download');
-
-    // Transactions Report
-    Route::get('reports/transactions', [ReportsController::class, 'generateTransactions'])->name('reports.transactions.generate');
-    Route::get('reports/transactions/download', [ReportsController::class, 'downloadTransactions'])->name('reports.transactions.download');
-
-    // Members Report
-    Route::get('reports/members', [ReportsController::class, 'generateMembers'])->name('reports.members.generate');
-    Route::get('reports/members/download', [ReportsController::class, 'downloadMembers'])->name('reports.members.download');
-
-    // Penalties Report
-    Route::get('reports/penalties', [ReportsController::class, 'generatePenalties'])->name('reports.penalties.generate');
-    Route::get('reports/penalties/download', [ReportsController::class, 'downloadPenalties'])->name('reports.penalties.download');
-
-    // Dividends Report
-    Route::get('reports/dividends', [ReportsController::class, 'generateDividends'])->name('reports.dividends.generate');
-    Route::get('reports/dividends/download', [ReportsController::class, 'downloadDividends'])->name('reports.dividends.download');
-
 
     // settings route
     Route::post('/settings/{settings}', [SettingsController::class, 'update'])->name('settings.update');
