@@ -21,14 +21,15 @@ class RolePolicy
     {
         // $role = session('role');
         $role = session('role');
+        // dd($role);
         // Check if the user has a valid role (adjust according to your application's roles)
-        return  $role == 'admin' || $role == 'staff' || $role == 'superadmin'; // Example roles
+        return in_array($role, ['admin', 'staff', 'superadmin']);
     }
-    
+
     public function switchRole(): bool
     {
         $user = Auth::user();
-        dd($user);
-        return in_array($user->role, ['admin', 'staff']);
+        // dd($user);
+        return in_array($user->role, ['admin', 'staff', 'superadmin']);
     }
 }

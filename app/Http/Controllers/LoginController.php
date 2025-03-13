@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
+// use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -36,10 +39,15 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        DB::table('sessions')->where('user_id', Auth::id())->delete();
         Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->session()->flush(); // Clears all session data
+        $request->session()->invalidate(); // Invalidates session ID
+        $request->session()->regenerateToken(); // Prevents CSRF reuse
+
+        Cookie::queue(Cookie::forget('laravel_session'));
         return redirect()->route('login');
+
     }
 
     public function showLinkRequestForm()

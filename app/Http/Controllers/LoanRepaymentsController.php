@@ -38,7 +38,7 @@ class LoanRepaymentsController extends Controller
         ->paginate(10);
 
 
-        return view('loans.installments', [
+        return view('Loans.installments', [
             'loan' => $loan,
             'installments' => $installments,
         ]);
@@ -154,7 +154,7 @@ class LoanRepaymentsController extends Controller
     }
 }
 
-     
+
 
 
 //     public function initiatePayment(LoanRepayments $repayment, Request $request)
@@ -200,7 +200,7 @@ class LoanRepaymentsController extends Controller
 //             ]);
 //         });
 
-//         return back()->with('success', 
+//         return back()->with('success',
 //             "Installment #{$repayment->id} for {$repayment->amount} has been added successfully. Waiting for Admin Approval."
 //         );
 //     } catch (\Exception $e) {

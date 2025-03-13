@@ -22,10 +22,10 @@ class ReportsController extends Controller
         return view('Reports.savings');
     }
     public function loans(){
-        return view('Reports.loans');
+        return view('Reports.Loans');
     }
     public function transactions(){
-        return view('Reports.transactions');
+        return view('Reports.Transactions');
     }
     public function members(){
         return view('Reports.members');
@@ -46,7 +46,7 @@ class ReportsController extends Controller
 
         if($request->format){
             // dd($request->format);
-            return redirect()->route('reports.download' , $request->all());
+            return redirect()->route('Reports.download' , $request->all());
         }
 
         $reportType = $request->report_type;
@@ -54,7 +54,8 @@ class ReportsController extends Controller
 
         // dd($data);
 
-        return view('Reports.index', array_merge($data, [
+        return view('Reports.generate', array_merge([
+            'data' => $data,
             'reportType' => $reportType,
             'settings' => Settings::first()
         ]));
@@ -76,11 +77,11 @@ class ReportsController extends Controller
 
         // dd($data);
         if ($request->format === 'pdf') {
-            $pdf = PDF::loadView('reports.index', array_merge([
+            $pdf = PDF::loadView('Reports.index', array_merge([
                 'data' => $data,
                 'reportTitle' => $reportTitle,
                 'settings' => Settings::first()
-            ]))->setPaper('Legal', 'landscape');
+            ]))->setPaper('a4', 'landscape');
 
             return $pdf->download("{$reportType}_report.pdf");
         }
@@ -113,83 +114,93 @@ class ReportsController extends Controller
 
     // Data Fetching Methods
     private function getLoanData(Request $request): array
-    {
-        $loans = Loans::with('user')
-            ->whereBetween('created_at', [
-                Carbon::parse($request->from_date),
-                Carbon::parse($request->to_date)
-            ])->get();
-
-        return [
-            'tableHeaders' => ['Loan ID', 'Member Name', 'Status', ' Date', 'Amount'],
-            'tableRows' => $loans->map(fn($loan) => [
-                $loan->id,
-                $loan->user->first_name . ' ' . $loan->user->last_name,
-                $loan->status,
-                $loan->created_at,
-                number_format($loan->amount, 2)
-            ])->toArray()
-        ];
-    }
-
-    private function getSavingsData(Request $request): array
-    {
-        $transactions = Transactions::with('user')
-            ->where('type', 'savings_deposit')
-            ->whereBetween('completed_at', [
-                Carbon::parse($request->from_date),
-                Carbon::parse($request->to_date)
-            ])->get();
-
-        return [
-            'tableHeaders' => ['Transaction ID', 'Member', 'Date', 'Amount'],
-            'tableRows' => $transactions->map(fn($t) => [
-                $t->id,
-                $t->user->first_name . ' ' .$t->user->last_name,
-                $t->completed_at,
-                number_format($t->amount, 2)
-            ])->toArray()
-        ];
-    }
-
-    private function getMemberData(): array
-    {
-        $members = User::with('savings')->get();
-    
-        return [
-            'tableHeaders' => ['Member ID', 'Name', 'Last Transaction', 'Account Balance'],
-            'tableRows' => $members->map(fn($m) => [
-                $m->id,
-                $m->first_name . ' ' . $m->last_name,
-                optional($m->savings->last_deposit_date) 
-                    ? \Carbon\Carbon::parse($m->savings->last_deposit_date)->format('D, M d, Y - H:i') 
-                    : 'N/A',
-                number_format($m->savings->account_balance ?? 0, 2)
-            ])->toArray()
-        ];
-    }
-    
-
-
-    private function getTransactionData(Request $request): array
-    {
-        $transactions = Transactions::with('user')->whereBetween('completed_at', [
+{
+    $loans = Loans::with('user')
+        ->whereBetween('created_at', [
             Carbon::parse($request->from_date),
             Carbon::parse($request->to_date)
         ])->get();
 
-        // dd($transactions);
-        return [
-            'tableHeaders' => ['Transaction ID', 'Name', 'Type', 'Date', 'Amount'],
-            'tableRows' => $transactions->map(fn($t) => [
-                $t->id,
-                $t->user->first_name. ' ' . $t->user->last_name,
-                $t->type,
-                $t->completed_at,
-                number_format($t->amount, 2)
-            ])->toArray()
-        ];
-    }
+    $totalAmount = number_format($loans->sum('loan_amount'), 2);
+
+    return [
+        'tableHeaders' => ['Loan ID', 'Member Name', 'Status', 'Date', 'Amount'],
+        'tableRows' => $loans->map(fn($loan) => [
+            $loan->id,
+            $loan->user->first_name . ' ' . $loan->user->last_name,
+            $loan->status,
+            $loan->created_at->format('Y-m-d'),
+            number_format($loan->loan_amount, 2)
+        ])->toArray(),
+        'totalAmount' => $totalAmount
+    ];
+}
+
+private function getSavingsData(Request $request): array
+{
+    $transactions = Transactions::with('user')
+        ->where('type', 'savings_deposit')
+        ->whereBetween('completed_at', [
+            Carbon::parse($request->from_date),
+            Carbon::parse($request->to_date)
+        ])->get();
+
+    $totalAmount = number_format($transactions->sum('amount'), 2);
+
+    return [
+        'tableHeaders' => ['Transaction ID', 'Member', 'Date', 'Amount'],
+        'tableRows' => $transactions->map(fn($t) => [
+            $t->id,
+            $t->user->first_name . ' ' . $t->user->last_name,
+            $t->completed_at->format('Y-m-d'),
+            number_format($t->amount, 2)
+        ])->toArray(),
+        'totalAmount' => $totalAmount
+    ];
+}
+
+private function getMemberData(): array
+{
+    $members = User::with('savings')->get();
+    $totalAmount = number_format($members->sum(fn($m) => $m->savings->account_balance ?? 0), 2);
+
+    return [
+        'tableHeaders' => ['Member ID', 'Name', 'Last Transaction', 'Account Balance'],
+        'tableRows' => $members->map(fn($m) => [
+            $m->id,
+            $m->first_name . ' ' . $m->last_name,
+            optional($m->savings->last_deposit_date)
+                ? Carbon::parse($m->savings->last_deposit_date)->format('D, M d, Y - H:i')
+                : 'N/A',
+            number_format($m->savings->account_balance ?? 0, 2)
+        ])->toArray(),
+        'totalAmount' => $totalAmount
+    ];
+}
+
+private function getTransactionData(Request $request): array
+{
+    $transactions = Transactions::with('user')
+        ->whereBetween('completed_at', [
+            Carbon::parse($request->from_date),
+            Carbon::parse($request->to_date)
+        ])->get();
+
+    $totalAmount = number_format($transactions->sum('amount'), 2);
+
+    return [
+        'tableHeaders' => ['Transaction ID', 'Name', 'Type', 'Date', 'Amount'],
+        'tableRows' => $transactions->map(fn($t) => [
+            $t->id,
+            $t->user->first_name . ' ' . $t->user->last_name,
+            $t->type,
+            $t->completed_at->format('Y-m-d'),
+            number_format($t->amount, 2)
+        ])->toArray(),
+        'totalAmount' => $totalAmount
+    ];
+}
+
 }
 
 

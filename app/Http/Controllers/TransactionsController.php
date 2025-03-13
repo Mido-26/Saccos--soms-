@@ -64,7 +64,7 @@ class TransactionsController extends Controller
         // Retrieve users with only first_name, last_name, and id, including their savings
         $users = User::select('id', 'first_name', 'last_name')->with('savings')->get();
 
-        return view('transactions.create', compact('users', 'ids', 'loans'));
+        return view('Transactions.create', compact('users', 'ids', 'loans'));
     }
 
 
@@ -79,10 +79,10 @@ class TransactionsController extends Controller
     }
 
     $setting = Settings::first();
-    
+
     // Retrieve the minimum saving amount from the settings.
     $minSavingAmount = $setting->min_savings;
-    
+
     // Set up base validation rules.
     $approvedLoans = Loans::where('status', 'approved')->pluck('id')->implode(',');
 
@@ -92,7 +92,7 @@ class TransactionsController extends Controller
         'loans'          => [
             'nullable',
             'exists:loans,id',
-            Rule::in(explode(',', $approvedLoans)), 
+            Rule::in(explode(',', $approvedLoans)),
             Rule::requiredIf(fn() => request('type') === 'loan_disbursement'),
         ],
         'amount'         => [
@@ -165,27 +165,27 @@ class TransactionsController extends Controller
         // Process a loan disbursement.
         elseif ($validated['type'] === 'loan_disbursement') {
             $submittedLoan = Loans::where('id', $validated['loans'])->first();
-        
+
             if (!$submittedLoan) {
                 return redirect()->back()->with('error', 'Selected loan does not exist.');
             }
-        
+
             // Check if loan status is 'approved'
             if ($submittedLoan->status !== 'approved') {
                 return redirect()->back()->with('error', 'The loan is not approved for disbursement.');
             }
-        
+
             // Set the amount to the principal amount of the loan
             $validated['amount'] = $submittedLoan->principal_amount;
-        
+
             // Update the loan status to 'disbursed' and set disbursed_at timestamp
             $submittedLoan->update([
                 'status'       => 'disbursed',
                 'disbursed_at' => now(),
             ]);
         }
-        
-        
+
+
 
         // Optionally store extra loan-related fields in transaction metadata.
         $metadata = [];
@@ -229,13 +229,13 @@ class TransactionsController extends Controller
     }
 
     // Return the transaction details view
-    return view('transactions.show', compact('transaction'));
+    return view('Transactions.show', compact('transaction'));
 }
 
 
     public function edit(Transactions $transaction){
         $users = User::select('id', 'first_name', 'last_name')->with('savings')->get();
-        return view('transactions.edit', compact('users', 'transaction'));
+        return view('Transactions.edit', compact('users', 'transaction'));
     }
 
 

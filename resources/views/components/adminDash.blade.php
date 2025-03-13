@@ -1,4 +1,4 @@
-<div class="relative bg-rose-100 p-4 rounded-lg shadow-md mb-4">
+{{-- <div class="relative bg-rose-100 p-4 rounded-lg shadow-md mb-4">
     <!-- Close button -->
     <button class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 focus:outline-none" aria-label="Close alert">
       <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -32,7 +32,7 @@
         </div>
       </div>
     </div>
-  </div>
+</div> --}}
   
   {{-- <div class="flex justify-end mb-4">
     <div class="flex rounded-md shadow-sm">
@@ -53,11 +53,12 @@
     </div>
   </div> --}}
   
-  <div class="flex justify-end mb-4 space-x-2 items-center">
-    <!-- Short Description Text -->
-  <p class="text-md text-gray-600 font-bold">
-    Filter By Time:
-  </p>
+  {{-- <div class="flex justify-end mb-4 space-x-2 items-center">
+        <!-- Short Description Text -->
+      <p class="text-md text-gray-600 font-bold">
+        Filter By Time:
+      </p>
+
     <div class="flex rounded-md shadow-sm">
       <!-- 1 Month (active) -->
       <button type="button" class="flex items-center px-4 py-2 border border-green-500 bg-white text-green-500 rounded-l-md text-sm font-medium focus:outline-none focus:ring-1 focus:ring-green-500">
@@ -68,25 +69,25 @@
         1 Month
       </button>
   
-      <!-- 6 Month (inactive) -->
-      <button type="button" class="flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500">
-        <!-- Clock Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        6 Month
-      </button>
+        <!-- 6 Month (inactive) -->
+        <button type="button" class="flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500">
+          <!-- Clock Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          6 Month
+        </button>
   
-      <!-- Annually (inactive) -->
-      <button type="button" class="flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-r-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500">
-        <!-- Chart Bar Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h4v11H3zM10 4h4v17h-4zM17 7h4v14h-4z" />
-        </svg>
-        Annually
-      </button>
+        <!-- Annually (inactive) -->
+        <button type="button" class="flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-r-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-500">
+          <!-- Chart Bar Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h4v11H3zM10 4h4v17h-4zM17 7h4v14h-4z" />
+          </svg>
+          Annually
+        </button>
     </div>
-  </div>
+  </div> --}}
   
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     <!-- Existing Cards - Keep all as they show crucial metrics -->

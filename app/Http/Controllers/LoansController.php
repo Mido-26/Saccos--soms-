@@ -30,7 +30,7 @@ class LoansController extends Controller
     public function index(Request $request)
 {
     // dd($request->route('status'));
-    $loanStatus = $request->route('status'); 
+    $loanStatus = $request->route('status');
     $userLoans = $request->route('user');
     $user = Auth::user();
     $role = session('role');
@@ -51,7 +51,7 @@ class LoansController extends Controller
         $loans = $query->where('user_id', $user->id)->paginate(15);
     }
 
-    return view('loans.index', compact('loans'));
+    return view('Loans.index', compact('loans'));
 }
 
 
@@ -65,7 +65,7 @@ class LoansController extends Controller
         $settings = Settings::first();
         $minSavings = $settings->min_savings_guarantor ?? 0;
         $allowGuarantor = $settings->allow_guarantor; // true/false flag
-        $minGuarantors = $allowGuarantor ? $settings->min_guarantor : 0; 
+        $minGuarantors = $allowGuarantor ? $settings->min_guarantor : 0;
 
         $user = Auth::user();
 
@@ -79,12 +79,12 @@ class LoansController extends Controller
         if ($savings->isEmpty()) {
             $referee = ['referee' => 'No referee contact your admin'];
             $no = null;
-            return view('loans.create', compact('referee', 'no', 'allowGuarantor', 'minGuarantors'));
+            return view('Loans.create', compact('referee', 'no', 'allowGuarantor', 'minGuarantors'));
         }
 
         $referee = $savings;
         $no = true;
-        return view('loans.create', compact('referee', 'no', 'allowGuarantor', 'minGuarantors'));
+        return view('Loans.create', compact('referee', 'no', 'allowGuarantor', 'minGuarantors'));
     }
 
     /**
@@ -145,8 +145,8 @@ class LoansController extends Controller
 
         // dd($activeLoan, $user);
         if ($activeLoan) {
-            return redirect()->route('loans.index')->with('error', 'You have either an active loan or a pending loan application!');
-        }                                                                    
+            return redirect()->back()->with('error', 'You have either an active loan or a pending loan application!');
+        }
 
         // Create the loan record.
         $loan = Loans::create([
@@ -176,7 +176,7 @@ class LoansController extends Controller
         // Notify the user with a delay of 3 minutes
         (new LoanCreationNotification($loan))->delay(now()->addMinutes(3));
 
-        return redirect()->route('loans.index')->with('success', 'Loan created and referees notified successfully!');
+        return redirect()->route('Loans.index')->with('success', 'Loan created and referees notified successfully!');
     }
 
 
@@ -194,12 +194,12 @@ class LoansController extends Controller
     if (Auth::id() !== $loan->user_id && !in_array($role, ['admin', 'superadmin'])) {
         $referees = $loan->referee->pluck('user_id')->toArray();
         if (!in_array(Auth::id(), $referees)) {
-            return redirect()->route('loans.index')->with('error', 'You are not authorized to view this loan!');
+            return redirect()->route('Loans.index')->with('error', 'You are not authorized to view this loan!');
         }
     }
 
     // Return the loan view with the loan data
-    return view('loans.show', compact('loan'));
+    return view('Loans.show', compact('loan'));
 }
 
     /**
@@ -217,7 +217,7 @@ class LoansController extends Controller
     {
         // dd($request->all());
         $referee = $request->route('referee');
-        
+
         $action = $request->route('action');
 
         $loans = Loans::findOrFail($loans);

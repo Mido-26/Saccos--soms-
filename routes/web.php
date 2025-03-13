@@ -11,12 +11,18 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SavingsController;
 use App\Http\Middleware\CheckAccountStatus;
+use App\Http\Middleware\CheckDefaultPassword;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TransactionsController;
 use App\Http\Controllers\LoanRepaymentsController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\PasswordUpdatedNotification; 
 
 
 Route::middleware(CheckConfigs::class)->group( function(){
@@ -28,7 +34,7 @@ Route::middleware(CheckConfigs::class)->group( function(){
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         // Mark the user's email address as verified
         $request->fulfill();
-        return redirect('/dashboard'); 
+        return redirect('/dashboard');
     })->middleware(['auth', 'signed'])->name('verification.verify');
 
 
@@ -38,7 +44,7 @@ Route::middleware(CheckConfigs::class)->group( function(){
     })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 
-    Route::middleware(['auth','verified', CheckAccountStatus::class])->group(function () {
+    Route::middleware(['auth','verified',CheckDefaultPassword::class, CheckAccountStatus::class])->group(function () {
         // Reports Routes
         Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
         Route::get('/reports/savings', [ReportsController::class, 'savings'])->name('reports.savings');
@@ -46,17 +52,17 @@ Route::middleware(CheckConfigs::class)->group( function(){
         Route::get('/reports/members', [ReportsController::class, 'members'])->name('reports.members');
         Route::get('/reports/transactions', [ReportsController::class, 'transactions'])->name('reports.transactions');
         Route::post('/reports/savings/', [ReportsController::class, 'generate'])->name('reports.generate');
-        Route::get('/reports/download', [ReportsController::class, 'download'])->name('reports.download');
+        Route::get('/reports/download', [ReportsController::class, 'download'])->name('Reports.download');
 
         // logout route
         Route::get('logout', [LoginController::class, 'logout'])->name('logout');
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
-        
+
         // Authenticated routes
         Route::get('profile', [ProfileController::class, 'index'])->name('profile');
         Route::patch('profile/{user}', [ProfileController::class, 'updateProfile'])->name('profile.update');
         Route::patch('profile/{user}/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
-        
+
         // Dashboard routes
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::Post('dashboard', [DashboardController::class, 'switchUser'])->name('dashboard');
@@ -69,8 +75,8 @@ Route::middleware(CheckConfigs::class)->group( function(){
         Route::middleware([RoleMiddleware::class . ':admin,staff'])->group( function () : void {
             Route::resource('savings', SavingsController::class);
             Route::resource('users', UserController::class);
-            Route::patch('users/{user}/{todo}', [UserController::class, 'update'])->name('users.updateAction'); 
-            // Route::resource('loan-categories', LoansCartController::class);   
+            Route::patch('users/{user}/{todo}', [UserController::class, 'update'])->name('users.updateAction');
+            // Route::resource('loan-categories', LoansCartController::class);
         });
 
         // Notifications routes
@@ -120,12 +126,59 @@ Route::middleware(CheckConfigs::class)->group( function(){
         Route::get('/inactive', function () {
             return view('inactive');
         })->name('inactive');
-        
+
         Route::get('/support', function () {
             return view('/errors/support');
         })->name('support');
-        
+
     });
+
+    Route::get('/password/change', function () {
+        return view('auth.change-password');
+    })->name('password.change');
+
+    Route::post('/password/update', function (Request $request) {
+        // Custom validation rules
+        $validator = Validator::make($request->all(), [
+            'password' => [
+                'required',
+                'confirmed',
+                'min:8',
+                'different:current_password', // Ensure new password is different from current password
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', // Enforce alphanumeric + symbols
+            ],
+        ]);
+
+        // If validation fails, redirect back with errors
+        if ($validator->fails()) {
+            return redirect()->back()
+                             ->withErrors($validator)
+                             ->withInput();
+        }
+
+        // Get the authenticated user
+        $user = Auth::user();
+
+        // Check if the new password is the same as the current password
+        if (Hash::check($request->password, $user->password)) {
+            return redirect()->back()
+                             ->withErrors(['password' => 'The new password must be different from the current password.'])
+                             ->withInput();
+        }
+
+        // Update the user's password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Notify the user via database
+        $user->notify(new PasswordUpdatedNotification('database'));
+
+        // Notify the user via email
+        Notification::send($user, new PasswordUpdatedNotification('mail'));
+
+        // Redirect to the dashboard with a success message
+        return redirect()->route('dashboard')->with('success', 'Password updated successfully.');
+    })->middleware('auth')->name('password.update1'); // Name the route for easy reference
 
     // Login routes
     Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');

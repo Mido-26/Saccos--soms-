@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'phone_number' => '0778854047',
             'Date_OF_Birth' => fake()->date('Y-m-d', '-18 years'), // Generate a date of birth at least 18 years ago
             'Address' => fake()->address(), // Generate a full address
-            'role' => 'superadmin',
+            'role' => 'admin',
             'status' => fake()->randomElement(['active']), // Random status
             'email_verified_at' => now(), // Set the email verification timestamp
             'password' =>  Hash::make('password'), // Generate a hashed password

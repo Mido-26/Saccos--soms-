@@ -150,14 +150,14 @@
 <body>
     <!-- Watermark Image -->
     <div class="watermark">
-        <img src="{{ public_path('assets/logo/logo2.png') }}" alt="Watermark Logo">
+        <img src="{{ asset('assets/logo/logo2.png') }}" alt="Watermark Logo">
     </div>
 
     <header>
         <table>
             <tr>
                 <td style="width: 130px; vertical-align: middle;">
-                    <img src="{{ public_path('assets/logo/logo2.png') }}" alt="Organization Logo">
+                    <img src="{{ asset('assets/logo/logo2.png') }}" alt="Organization Logo">
                 </td>
                 <td style="vertical-align: middle;">
                     <div class="org-info">
@@ -201,6 +201,7 @@
                     <tr>
                         <td colspan="{{ count($data['tableHeaders']) - 1 }}" style="text-align: right;">Total Amount:</td>
                         <td>{{ $data['totalAmount'] }}</td>
+
                     </tr>
                 </tfoot>
             </table>

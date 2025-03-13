@@ -159,35 +159,35 @@
                                 class="flex items-center py-2 px-4 text-sm text-gray-600 hover:bg-gray-200 rounded transition">
                                 <i class="fa-solid fa-users mr-1 text-xs"></i> Members Report
                             </a>
-                            <a href="{{ route('inprogress') }}"
+                            {{-- <a href="{{ route('inprogress') }}"
                                 class="flex items-center py-2 px-4 text-sm text-gray-600 hover:bg-gray-200 rounded transition">
                                 <i class="fa-solid fa-exclamation-triangle mr-1 text-xs"></i> Penalties Report
                             </a>
                             <a href="{{ route('inprogress') }}"
                                 class="flex items-center py-2 px-4 text-sm text-gray-600 hover:bg-gray-200 rounded transition">
                                 <i class="fa-solid fa-chart-pie mr-1 text-xs"></i> Dividends Report
-                            </a>
+                            </a> --}}
                         </div>
                     </div>
                 @endcan
 
 
                 <!-- Settings -->
-                <a href="{{ route('settings.index') }}"
+                {{-- <a href="{{ route('settings.index') }}"
                     class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded transition capitalize 
                     {{ request()->is('settings', 'settings/*') ? 'border-l-4 border-green-700 bg-green-100 text-green-700' : '' }} transition-all hover:pl-5 hover:ml-3
                     group">
                     <i class="fa-solid fa-cog mr-2"></i> Settings
-                </a>
+                </a> --}}
 
                 <!-- User Manual -->
-                <a href="{{ route('inprogress') }}"
+                {{-- <a href="{{ route('inprogress') }}"
                     class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded transition capitalize 
                     {{ request()->is('manual', 'manual/*') ? 'border-l-4 border-green-700 bg-green-100 text-green-700' : '' }} 
                     transition-all hover:pl-3 hover:ml-3
                     group">
                     <i class="fa-solid fa-book-open mr-2"></i> User Manual
-                </a>
+                </a> --}}
 
 
             </nav>
